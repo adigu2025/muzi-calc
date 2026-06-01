@@ -108,7 +108,7 @@ body{
   background:#f8fafc;border:1.5px solid #d8e2ea;
   border-radius:10px;padding:16px;
 }
-.target-box h3{font-size:13px;font-weight:600;color:#3b7a8f;margin-bottom:12px;}
+.target-box h3{font-size:15px;font-weight:600;color:#3b7a8f;margin-bottom:12px;}
 .target-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
 .target-input-wrap{display:flex;align-items:center;gap:8px;}
 .target-input-wrap input{
@@ -116,14 +116,14 @@ body{
   border-radius:8px;font-size:16px;color:#1a2d3a;outline:none;transition:border-color 0.2s;
 }
 .target-input-wrap input:focus{border-color:#3b7a8f;}
-.target-input-wrap span{font-size:13px;color:#6b7a8d;}
+.target-input-wrap span{font-size:15px;color:#6b7a8d;}
 .target-result{
   background:#fff;border:1.5px solid #c8e6d4;border-radius:8px;
   padding:8px 16px;display:none;
 }
-.target-pct-num{font-size:15px;font-weight:600;padding:4px 14px;border-radius:20px;display:inline-block;}
-.target-pct-label{font-size:12px;color:#7a8d9b;margin-top:6px;}
-.target-detail{font-size:11.5px;color:#7a8d9b;margin-top:10px;line-height:1.7;display:none;}
+.target-pct-num{font-size:17px;font-weight:600;padding:4px 14px;border-radius:20px;display:inline-block;}
+.target-pct-label{font-size:14px;color:#7a8d9b;margin-top:6px;}
+.target-detail{font-size:13.5px;color:#7a8d9b;margin-top:10px;line-height:1.7;display:none;}
 
 /* FIB-4 */
 .fib-formula{
@@ -289,6 +289,27 @@ body{
   .bristol-grid{ grid-template-columns:repeat(3,1fr) !important; }
 }
 
+
+.edu-card{background:#f8fafc;border-radius:8px;padding:12px;border:1px solid #e4eaed;}
+.edu-icon{font-size:21px;margin-bottom:5px;}
+.edu-title{font-size:14px;font-weight:700;color:#3b7a8f;margin-bottom:4px;}
+.edu-text{font-size:13.5px;color:#5a6e7a;line-height:1.7;}
+.timeline-item{background:#fff;border:1.5px solid #d8e2ea;border-radius:8px;padding:10px;text-align:center;}
+.timeline-item .t-label{font-size:13px;color:#6b7a8d;margin-bottom:4px;}
+.timeline-item .t-val{font-size:18px;font-weight:700;color:#3b7a8f;}
+.timeline-item .t-unit{font-size:12px;color:#9aabb8;}
+.macro-item{background:#fff;border:1.5px solid #d8e2ea;border-radius:8px;padding:10px;text-align:center;}
+.macro-item .m-label{font-size:13px;color:#6b7a8d;margin-bottom:4px;}
+.macro-item .m-val{font-size:20px;font-weight:700;}
+.macro-item .m-unit{font-size:12px;color:#9aabb8;}
+@media(max-width:600px){
+  #tdee-result > div:first-child{grid-template-columns:1fr!important;}
+  #tdee-timeline{grid-template-columns:1fr 1fr!important;}
+  #tdee-macros{grid-template-columns:1fr 1fr 1fr;}
+  #tdee-edu{grid-template-columns:1fr!important;}
+  .edu-text{font-size:14px;}
+}
+
 </style>
 </head>
 <body>
@@ -315,6 +336,7 @@ body{
     <label>選擇計算工具：</label>
     <select id="tool-select" onchange="switchTool(this.value)">
       <option value="bmi" selected>BMI｜身體質量指數</option>
+      <option value="tdee">BMR / TDEE｜熱量需求與減重</option>
       <option value="fib4">FIB-4｜肝纖維化評估</option>
       <option value="rfactor">R Factor｜肝損傷型態鑑別</option>
       <option value="childpugh">Child-Pugh｜肝硬化分級</option>
@@ -794,6 +816,139 @@ body{
       </div>
     </div>
 
+    <!-- ===== TDEE PANEL ===== -->
+    <div class="tool-panel" id="panel-tdee">
+      <div class="tool-subtitle">BMR / TDEE｜基礎代謝率與每日熱量需求計算器</div>
+
+      <div class="fib-formula">
+        <strong>Mifflin-St Jeor 公式（目前最準確的 BMR 公式）：</strong><br>
+        男性：BMR = 10 × 體重(kg) + 6.25 × 身高(cm) − 5 × 年齡 + 5<br>
+        女性：BMR = 10 × 體重(kg) + 6.25 × 身高(cm) − 5 × 年齡 − 161<br>
+        <span style="color:#9aabb8;font-size:12px">TDEE = BMR × 活動係數　｜　每週減重 0.5 kg ≈ 每日減少 500 kcal</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+        <div class="input-group">
+          <label>性別</label>
+          <select id="tdee-sex" onchange="calcTDEE()" class="cp-select">
+            <option value="">請選擇</option>
+            <option value="male">男性</option>
+            <option value="female">女性</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>年齡（歲）</label>
+          <input type="number" id="tdee-age" placeholder="例：40" min="10" max="100" oninput="calcTDEE()">
+        </div>
+        <div class="input-group">
+          <label>身高（cm）</label>
+          <input type="number" id="tdee-height" placeholder="例：170" min="100" max="250" oninput="calcTDEE()">
+        </div>
+        <div class="input-group">
+          <label>體重（kg）</label>
+          <input type="number" id="tdee-weight" placeholder="例：75" min="20" max="300" oninput="calcTDEE()">
+        </div>
+      </div>
+
+      <div class="input-group" style="margin-bottom:24px;">
+        <label>活動量</label>
+        <select id="tdee-activity" onchange="calcTDEE()" class="cp-select">
+          <option value="">請選擇</option>
+          <option value="1.2">久坐少動（辦公室工作，幾乎不運動）× 1.2</option>
+          <option value="1.375">輕度活動（每週輕度運動 1–3 天）× 1.375</option>
+          <option value="1.55">中度活動（每週中強度運動 3–5 天）× 1.55</option>
+          <option value="1.725">高度活動（每週高強度運動 6–7 天）× 1.725</option>
+          <option value="1.9">非常高度活動（體力勞動或每日高強度訓練）× 1.9</option>
+        </select>
+      </div>
+
+      <div class="empty-hint" id="tdee-hint">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c8d8df" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4l3 3"/>
+        </svg>
+        <p>請填入全部欄位後立即計算</p>
+      </div>
+
+      <div id="tdee-result" style="display:none;">
+
+        <!-- Main numbers -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px;">
+          <div style="background:#f4f7f9;border-radius:12px;padding:14px;text-align:center;">
+            <div style="font-size:14px;color:#6b7a8d;margin-bottom:4px;">基礎代謝率 BMR</div>
+            <div style="font-size:30px;font-weight:700;color:#3b7a8f;" id="tdee-bmr">—</div>
+            <div style="font-size:13px;color:#9aabb8;">kcal/天</div>
+          </div>
+          <div style="background:#f4f7f9;border-radius:12px;padding:14px;text-align:center;">
+            <div style="font-size:14px;color:#6b7a8d;margin-bottom:4px;">每日總消耗 TDEE</div>
+            <div style="font-size:30px;font-weight:700;color:#2e7d4f;" id="tdee-val">—</div>
+            <div style="font-size:13px;color:#9aabb8;">kcal/天</div>
+          </div>
+          <div style="background:#fff8ee;border-radius:12px;padding:14px;text-align:center;border:1.5px solid #f4d090;">
+            <div style="font-size:14px;color:#6b7a8d;margin-bottom:4px;">減重目標熱量</div>
+            <div style="font-size:30px;font-weight:700;color:#b45a00;" id="tdee-target">—</div>
+            <div style="font-size:13px;color:#9aabb8;">kcal/天（−500）</div>
+          </div>
+        </div>
+
+        <!-- Weight loss timeline -->
+        <div style="background:#f8fafc;border:1.5px solid #d8e2ea;border-radius:10px;padding:16px;margin-bottom:20px;">
+          <div style="font-size:15px;font-weight:600;color:#3b7a8f;margin-bottom:12px;">📅 減重時程預估（每日減少 500 kcal）</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;" id="tdee-timeline"></div>
+        </div>
+
+        <!-- Macros -->
+        <div style="background:#f8fafc;border:1.5px solid #d8e2ea;border-radius:10px;padding:16px;margin-bottom:20px;">
+          <div style="font-size:15px;font-weight:600;color:#3b7a8f;margin-bottom:12px;">🍽 建議每日營養素攝取（減重目標熱量）</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;" id="tdee-macros"></div>
+          <div style="font-size:13px;color:#9aabb8;margin-top:10px;line-height:1.7;">
+            蛋白質 30%｜碳水化合物 40%｜脂肪 30%（減重建議比例）
+          </div>
+        </div>
+
+        <!-- Education -->
+        <div style="border:1.5px solid #d8e2ea;border-radius:10px;overflow:hidden;">
+          <div style="background:#3b7a8f;padding:10px 16px;">
+            <span style="color:#fff;font-size:15px;font-weight:600;">📖 減重衛教重點</span>
+          </div>
+          <div style="padding:14px 16px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;" id="tdee-edu">
+              <div class="edu-card">
+                <div class="edu-icon">💧</div>
+                <div class="edu-title">足夠水分</div>
+                <div class="edu-text">每日飲水 30–35 mL/kg，有助代謝廢物排除，並可降低飢餓感。餐前飲水 250–500 mL 可減少食量。</div>
+              </div>
+              <div class="edu-card">
+                <div class="edu-icon">🥗</div>
+                <div class="edu-title">飲食原則</div>
+                <div class="edu-text">增加蔬菜與蛋白質比例，減少精製碳水化合物與含糖飲料。建議少量多餐，避免暴飲暴食。</div>
+              </div>
+              <div class="edu-card">
+                <div class="edu-icon">🏃</div>
+                <div class="edu-title">規律運動</div>
+                <div class="edu-text">有氧運動燃燒熱量（每週 ≥ 150 分鐘中強度），搭配阻力訓練維持肌肉量，避免基礎代謝率下降。</div>
+              </div>
+              <div class="edu-card">
+                <div class="edu-icon">😴</div>
+                <div class="edu-title">睡眠品質</div>
+                <div class="edu-text">睡眠不足會升高飢餓素（Ghrelin），增加食慾與脂肪堆積。建議每日睡眠 7–9 小時。</div>
+              </div>
+              <div class="edu-card">
+                <div class="edu-icon">📉</div>
+                <div class="edu-title">減重速度</div>
+                <div class="edu-text">建議每週減重 0.5–1 kg 為安全速度，避免過快減重造成肌肉流失、膽結石或代謝紊亂。</div>
+              </div>
+              <div class="edu-card">
+                <div class="edu-icon">🩺</div>
+                <div class="edu-title">醫師評估</div>
+                <div class="edu-text">BMI ≥ 27 合併慢性病、或 BMI ≥ 30，建議至門診由醫師評估是否需要藥物輔助或手術治療。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
   </div>
 
   <div class="footer">
@@ -1081,6 +1236,53 @@ function selectBristol(type, el) {
   res.style.display = 'block';
 }
 
+
+// ===== TDEE / BMR =====
+function calcTDEE() {
+  var sex    = document.getElementById('tdee-sex').value;
+  var age    = parseFloat(document.getElementById('tdee-age').value);
+  var ht     = parseFloat(document.getElementById('tdee-height').value);
+  var wt     = parseFloat(document.getElementById('tdee-weight').value);
+  var act    = parseFloat(document.getElementById('tdee-activity').value);
+  var hint   = document.getElementById('tdee-hint');
+  var res    = document.getElementById('tdee-result');
+
+  if (!sex || !age || !ht || !wt || !act) {
+    res.style.display = 'none'; hint.style.display = 'block'; return;
+  }
+
+  // Mifflin-St Jeor
+  var bmr = 10 * wt + 6.25 * ht - 5 * age + (sex === 'male' ? 5 : -161);
+  var tdee = bmr * act;
+  var targetCal = tdee - 500;
+
+  document.getElementById('tdee-bmr').textContent = Math.round(bmr);
+  document.getElementById('tdee-val').textContent = Math.round(tdee);
+  document.getElementById('tdee-target').textContent = Math.round(targetCal);
+
+  // Timeline
+  var tl = document.getElementById('tdee-timeline');
+  var weeks = [4, 8, 12, 24];
+  var labels = ['1個月', '2個月', '3個月', '6個月'];
+  tl.innerHTML = '';
+  for (var i = 0; i < weeks.length; i++) {
+    var kg = (weeks[i] * 7 * 500 / 7700).toFixed(1);
+    tl.innerHTML += '<div class="timeline-item"><div class="t-label">' + labels[i] + '</div><div class="t-val">−' + kg + '</div><div class="t-unit">kg</div></div>';
+  }
+
+  // Macros
+  var macros = document.getElementById('tdee-macros');
+  var protein = Math.round(targetCal * 0.30 / 4);
+  var carbs   = Math.round(targetCal * 0.40 / 4);
+  var fat     = Math.round(targetCal * 0.30 / 9);
+  macros.innerHTML =
+    '<div class="macro-item"><div class="m-label">蛋白質</div><div class="m-val" style="color:#2979a0">' + protein + '</div><div class="m-unit">g／天</div></div>' +
+    '<div class="macro-item"><div class="m-label">碳水化合物</div><div class="m-val" style="color:#2e7d4f">' + carbs + '</div><div class="m-unit">g／天</div></div>' +
+    '<div class="macro-item"><div class="m-label">脂肪</div><div class="m-val" style="color:#b45a00">' + fat + '</div><div class="m-unit">g／天</div></div>';
+
+  hint.style.display = 'none'; res.style.display = 'block';
+}
+
 </script>
 
 <script>
@@ -1165,6 +1367,53 @@ function selectBristol(type, el) {
   res.style.background = d.bg;
   res.style.borderColor = d.color;
   res.style.display = 'block';
+}
+
+
+// ===== TDEE / BMR =====
+function calcTDEE() {
+  var sex    = document.getElementById('tdee-sex').value;
+  var age    = parseFloat(document.getElementById('tdee-age').value);
+  var ht     = parseFloat(document.getElementById('tdee-height').value);
+  var wt     = parseFloat(document.getElementById('tdee-weight').value);
+  var act    = parseFloat(document.getElementById('tdee-activity').value);
+  var hint   = document.getElementById('tdee-hint');
+  var res    = document.getElementById('tdee-result');
+
+  if (!sex || !age || !ht || !wt || !act) {
+    res.style.display = 'none'; hint.style.display = 'block'; return;
+  }
+
+  // Mifflin-St Jeor
+  var bmr = 10 * wt + 6.25 * ht - 5 * age + (sex === 'male' ? 5 : -161);
+  var tdee = bmr * act;
+  var targetCal = tdee - 500;
+
+  document.getElementById('tdee-bmr').textContent = Math.round(bmr);
+  document.getElementById('tdee-val').textContent = Math.round(tdee);
+  document.getElementById('tdee-target').textContent = Math.round(targetCal);
+
+  // Timeline
+  var tl = document.getElementById('tdee-timeline');
+  var weeks = [4, 8, 12, 24];
+  var labels = ['1個月', '2個月', '3個月', '6個月'];
+  tl.innerHTML = '';
+  for (var i = 0; i < weeks.length; i++) {
+    var kg = (weeks[i] * 7 * 500 / 7700).toFixed(1);
+    tl.innerHTML += '<div class="timeline-item"><div class="t-label">' + labels[i] + '</div><div class="t-val">−' + kg + '</div><div class="t-unit">kg</div></div>';
+  }
+
+  // Macros
+  var macros = document.getElementById('tdee-macros');
+  var protein = Math.round(targetCal * 0.30 / 4);
+  var carbs   = Math.round(targetCal * 0.40 / 4);
+  var fat     = Math.round(targetCal * 0.30 / 9);
+  macros.innerHTML =
+    '<div class="macro-item"><div class="m-label">蛋白質</div><div class="m-val" style="color:#2979a0">' + protein + '</div><div class="m-unit">g／天</div></div>' +
+    '<div class="macro-item"><div class="m-label">碳水化合物</div><div class="m-val" style="color:#2e7d4f">' + carbs + '</div><div class="m-unit">g／天</div></div>' +
+    '<div class="macro-item"><div class="m-label">脂肪</div><div class="m-val" style="color:#b45a00">' + fat + '</div><div class="m-unit">g／天</div></div>';
+
+  hint.style.display = 'none'; res.style.display = 'block';
 }
 
 </script>
