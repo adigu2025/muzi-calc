@@ -263,13 +263,17 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
   position:relative;height:11px;border-radius:6px;
   background:linear-gradient(to right,#7FB6D4 0%,#5FC08D 22%,#F0C24C 32%,#E2703F 100%);
   margin-bottom:9px;
+  cursor:pointer;touch-action:none;
 }
 .bar-marker{
   position:absolute;top:-5px;width:20px;height:20px;border-radius:50%;
   background:var(--navy);border:3px solid #fff;
   box-shadow:0 2px 6px rgba(0,0,0,.28);transform:translateX(-50%);
-  transition:left .45s var(--ease);
+  transition:left .45s var(--ease),width .15s var(--ease),height .15s var(--ease),top .15s var(--ease);
+  cursor:grab;touch-action:none;
 }
+.bar-marker:hover,.bar-marker:focus-visible{width:24px;height:24px;top:-7px;}
+.bar-marker.dragging{cursor:grabbing;transition:width .15s var(--ease),height .15s var(--ease),top .15s var(--ease);}
 .bar-labels{display:flex;justify-content:space-between;font-size:11.5px;color:var(--faint);font-weight:600;}
 .ideal-box{border:1.5px solid var(--line);border-radius:var(--radius-md);padding:15px;margin-bottom:16px;}
 .ideal-label{font-size:12.5px;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
@@ -518,7 +522,11 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
           </div>
         </div>
         <div class="bar-wrap">
-          <div class="bar-track"><div class="bar-marker" id="bar-marker" style="left:0%"></div></div>
+          <div class="bar-track" id="bar-track">
+            <div class="bar-marker" id="bar-marker" style="left:0%"
+                 role="slider" tabindex="0" aria-label="拖曳調整體重（身高固定）"
+                 aria-valuemin="14" aria-valuemax="40" aria-valuenow="0" aria-valuetext=""></div>
+          </div>
           <div class="bar-labels">
             <span>過輕<br>&lt;18.5</span>
             <span style="text-align:center">正常<br>18.5–24</span>
@@ -724,13 +732,6 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
         </div>
       </div>
 
-      <div class="empty-hint" id="fib4-hint">
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#B7C7CF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M19.428 15.428a2 2 0 0 0-1.022-.547l-2.387-.477a6 6 0 0 0-3.86.517l-.318.158a6 6 0 0 1-3.86.517L6.05 15.21a2 2 0 0 0-1.806.547M8 4h8l-1 1v5.172a2 2 0 0 0 .586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 0 0 9 10.172V5L8 4z"/>
-        </svg>
-        <p>輸入四項數值後即時計算</p>
-      </div>
-
       <div class="result" id="fib4-result" aria-live="polite">
         <div class="score-label">FIB-4 指數</div>
         <div class="score" id="fib-score">—</div>
@@ -793,13 +794,6 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
           <input type="number" id="rf-alp-uln" min="1" max="500" step="1" inputmode="numeric" autocomplete="off">
           <p class="field-err" hidden></p>
         </div>
-      </div>
-
-      <div class="empty-hint" id="rfactor-hint">
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#B7C7CF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
-        <p>輸入 ALT、ALT 正常上限、ALP、ALP 正常上限後即時計算</p>
       </div>
 
       <div class="result" id="rfactor-result" aria-live="polite">
@@ -895,13 +889,6 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
             <option value="3">&lt; 2.8（3 分）</option>
           </select>
         </div>
-      </div>
-
-      <div class="empty-hint" id="childpugh-hint">
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#B7C7CF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/>
-        </svg>
-        <p id="cp-hint-text">選擇全部五項指標後即時計算</p>
       </div>
 
       <div class="result" id="childpugh-result" aria-live="polite">
@@ -1271,7 +1258,6 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
         c.setAttribute('aria-pressed', 'false');
       });
       panel.querySelectorAll('tbody tr').forEach(function(tr){ tr.classList.remove('hit'); });
-      if (tool === 'childpugh') $('cp-hint-text').textContent = '選擇全部五項指標後即時計算';
       if (tool === 'bmi') bmiBase = '';
       var tr = $('target-result'), td = $('target-detail');
       if (tr) tr.style.display = 'none';
@@ -1322,7 +1308,10 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
     else extra = '目前體重位於標準範圍內。';
     $('ideal-note').textContent = extra;
 
-    $('bar-marker').style.left = (Math.min(Math.max((bmi - 14) / 26, 0), 1) * 100) + '%';
+    var marker = $('bar-marker');
+    marker.style.left = (Math.min(Math.max((bmi - 14) / 26, 0), 1) * 100) + '%';
+    marker.setAttribute('aria-valuenow', bmi.toFixed(1));
+    marker.setAttribute('aria-valuetext', 'BMI ' + bmi.toFixed(1) + '，體重 ' + w.toFixed(1) + ' 公斤');
 
     bmiBase = 'BMI ' + bmi.toFixed(1) + '（' + s.label + '）｜身高 ' + h + ' cm、體重 ' + w +
               ' kg｜標準體重範圍 ' + lo + '–' + hi + ' kg';
@@ -1362,6 +1351,85 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
 
   bind(['height','weight'], calcBMI);
   bind(['target-weight'], calcTarget);
+
+  /* ------------------------------------------------------
+     BMI 色條：拖曳黑點即時調整體重（身高固定）
+     ------------------------------------------------------ */
+  (function(){
+    var track = $('bar-track');
+    var marker = $('bar-marker');
+    if (!track || !marker) return;
+
+    var BMI_MIN = 14, BMI_MAX = 40;
+
+    // 依身高把指定 BMI 換算成體重，並套回體重欄位
+    function setWeightByBMI(bmi){
+      var h = num('height');
+      if (!isNum(h)) return;
+      var el = $('weight');
+      var hm = h / 100;
+      var w = bmi * hm * hm;
+      var lo = parseFloat(el.min), hi = parseFloat(el.max);
+      w = Math.min(Math.max(w, lo), hi);
+      el.value = w.toFixed(1);
+      calcBMI();
+    }
+
+    function bmiFromX(clientX){
+      var r = track.getBoundingClientRect();
+      var p = Math.min(Math.max((clientX - r.left) / r.width, 0), 1);
+      return BMI_MIN + p * (BMI_MAX - BMI_MIN);
+    }
+
+    function onMove(e){
+      e.preventDefault();
+      setWeightByBMI(bmiFromX(e.clientX));
+    }
+
+    function onUp(e){
+      marker.classList.remove('dragging');
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+      if (marker.releasePointerCapture && e.pointerId !== undefined) {
+        try { marker.releasePointerCapture(e.pointerId); } catch (err) { /* 忽略 */ }
+      }
+    }
+
+    function startDrag(e){
+      if (e.button !== undefined && e.button !== 0) return;
+      if (!isNum(num('height'))) return;
+      e.preventDefault();
+      marker.classList.add('dragging');
+      marker.focus();
+      if (marker.setPointerCapture && e.pointerId !== undefined) {
+        try { marker.setPointerCapture(e.pointerId); } catch (err) { /* 忽略 */ }
+      }
+      setWeightByBMI(bmiFromX(e.clientX));
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+      window.addEventListener('pointercancel', onUp);
+    }
+
+    track.addEventListener('pointerdown', startDrag);
+
+    // 鍵盤操作：方向鍵 ±0.5 kg，PageUp／PageDown ±2 kg
+    marker.addEventListener('keydown', function(e){
+      var step = 0;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowUp') step = 0.5;
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') step = -0.5;
+      else if (e.key === 'PageUp') step = 2;
+      else if (e.key === 'PageDown') step = -2;
+      if (!step) return;
+      e.preventDefault();
+      var el = $('weight');
+      var w = parseFloat(el.value);
+      if (isNaN(w)) return;
+      var lo = parseFloat(el.min), hi = parseFloat(el.max);
+      el.value = Math.min(Math.max(w + step, lo), hi).toFixed(1);
+      calcBMI();
+    });
+  })();
 
   /* ======================================================
      BMR / TDEE
@@ -1510,9 +1578,6 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
     var filled = vals.filter(function(v){ return v !== ''; }).length;
 
     if (filled < CP_FIELDS.length) {
-      $('cp-hint-text').textContent = filled === 0
-        ? '選擇全部五項指標後即時計算'
-        : '已選擇 ' + filled + ' / 5 項，尚有 ' + (CP_FIELDS.length - filled) + ' 項未選擇';
       show('childpugh', false);
       markRow('childpugh-table', null);
       return;
