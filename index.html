@@ -606,7 +606,7 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
         臨床計算<span class="group-count">6</span>
       </button>
       <button class="group-btn" role="tab" id="group-gi" aria-selected="false" tabindex="-1" data-group="gi">
-        腸胃與消化<span class="group-count">7</span>
+        腸胃與消化<span class="group-count">6</span>
       </button>
       <button class="group-btn" role="tab" id="group-meta" aria-selected="false" tabindex="-1" data-group="meta">
         代謝與體態<span class="group-count">3</span>
@@ -2073,30 +2073,6 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
             advice:'您有部分風險因子。建議諮詢醫師是否需要提早接受大腸鏡檢查，並積極改善飲食及生活習慣。' };
           return { level:'高風險', tone:'red',
             advice:'您的風險因子較多，建議主動告知醫師並安排大腸鏡檢查，以利早期發現與治療。請勿輕忽腸道症狀的變化。' };
-        }
-      },
-      {
-        id:'rdq', group:'gi', kind:'quiz', tab:'RDQ 逆流', tabEn:'症狀嚴重度',
-        title:'胃食道逆流自我檢測（RDQ）', sub:'依症狀頻率與困擾程度計分',
-        scoreLabel:'總分',
-        intro:'共 6 題，分別評估火燒心、逆流與上腹症狀的頻率及困擾程度。',
-        note:'※ RDQ 量表僅供初步篩檢參考，確診需由醫師評估',
-        max:24,
-        qs:[
-          { q:'過去四週內，你是否有胸口灼熱感（俗稱火燒心）？', opts:['沒有','偶爾（每週少於 1 天）','有時（每週 1–2 天）','經常（每週 3–4 天）','幾乎天天'], scores:[0,1,2,3,4] },
-          { q:'胸口灼熱感對你的生活有多大困擾？', opts:['不困擾','輕微困擾','中度困擾','嚴重困擾','非常嚴重'], scores:[0,1,2,3,4] },
-          { q:'過去四週內，你是否有胃酸或食物逆流到喉嚨或口腔的感覺？', opts:['沒有','偶爾','有時','經常','幾乎天天'], scores:[0,1,2,3,4] },
-          { q:'逆流症狀對你的生活有多大困擾？', opts:['不困擾','輕微困擾','中度困擾','嚴重困擾','非常嚴重'], scores:[0,1,2,3,4] },
-          { q:'過去四週內，你是否有上腹疼痛或不適感？', opts:['沒有','偶爾','有時','經常','幾乎天天'], scores:[0,1,2,3,4] },
-          { q:'上腹症狀對你的生活有多大困擾？', opts:['不困擾','輕微困擾','中度困擾','嚴重困擾','非常嚴重'], scores:[0,1,2,3,4] }
-        ],
-        grade:function(total){
-          if (total <= 4) return { level:'低度逆流', tone:'green',
-            advice:'目前症狀程度較輕，屬於偶發性不適。建議避免暴飲暴食、減少咖啡因及辛辣食物，飯後勿立即平躺。' };
-          if (total <= 10) return { level:'中度逆流', tone:'amber',
-            advice:'您有中度胃食道逆流症狀。建議調整飲食習慣（少量多餐、避免高脂食物）、睡前 2–3 小時勿進食，並告知醫師評估是否需要藥物治療。' };
-          return { level:'高度逆流', tone:'red',
-            advice:'您的症狀偏重，可能已影響生活品質。建議告知醫師進行進一步評估，包括是否需要胃鏡檢查或長期藥物治療。' };
         }
       },
       {
