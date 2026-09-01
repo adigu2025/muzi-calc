@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#3E6A7C">
-<meta name="description" content="木子澄安診所臨床計算工具：BMI、BMR/TDEE、FIB-4 肝纖維化、R Factor 肝損傷型態、Child-Pugh 肝硬化分級、Bristol 糞便型態量表。">
+<meta name="description" content="木子澄安診所臨床工具：BMI、BMR/TDEE、FIB-4 肝纖維化、R Factor 肝損傷型態、Child-Pugh 肝硬化分級、Bristol 糞便型態，以及胃酸逆流、脂肪肝、大腸癌風險、代謝症候群、糖尿病前期等自我評估。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233E6A7C'/%3E%3Ctext x='16' y='22' font-size='17' font-family='sans-serif' font-weight='700' fill='%23fff' text-anchor='middle'%3E木%3C/text%3E%3C/svg%3E">
-<title>木子澄安診所 臨床計算工具</title>
+<title>木子澄安診所 臨床計算與自我評估工具</title>
 <style>
 /* ==========================================================
    Design tokens
@@ -111,6 +111,28 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
   -webkit-backdrop-filter:saturate(150%) blur(8px);
   border-bottom:1px solid var(--line);
 }
+/* 第一層：分類 */
+.group-bar{
+  display:flex;gap:6px;padding:10px 20px 0;
+  overflow-x:auto;scrollbar-width:none;
+}
+.group-bar::-webkit-scrollbar{display:none;}
+.group-btn{
+  flex:0 0 auto;font:inherit;font-size:13px;font-weight:700;
+  color:var(--muted);background:none;border:none;
+  padding:6px 2px 8px;margin-right:14px;cursor:pointer;
+  border-bottom:2.5px solid transparent;white-space:nowrap;
+  transition:color .16s var(--ease),border-color .16s var(--ease);
+}
+.group-btn:hover{color:var(--teal);}
+.group-btn[aria-selected="true"]{color:var(--teal-dark);border-bottom-color:var(--gold);}
+.group-btn .group-count{
+  font-size:10.5px;font-weight:700;color:var(--faint);
+  margin-left:5px;
+}
+.group-btn[aria-selected="true"] .group-count{color:var(--gold);}
+
+/* 第二層：工具 */
 .tabs{
   display:flex;gap:8px;
   padding:11px 20px;
@@ -119,6 +141,7 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
   scroll-snap-type:x proximity;
 }
 .tabs::-webkit-scrollbar{display:none;}
+.tabs[hidden]{display:none;}
 .tab{
   flex:0 0 auto;scroll-snap-align:center;
   display:flex;flex-direction:column;align-items:flex-start;gap:1px;
@@ -338,6 +361,120 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
 .edu-text{font-size:13px;color:#53656F;line-height:1.75;}
 
 /* ==========================================================
+   自我評估：量表、勾選清單、顏色挑選
+   ========================================================== */
+.quiz-intro{
+  background:var(--teal-soft);border-left:3px solid var(--teal);
+  border-radius:var(--radius-sm);padding:12px 16px;
+  font-size:13px;color:#3C525C;line-height:1.85;margin-bottom:18px;
+}
+.progress-track{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-bottom:10px;}
+.progress-fill{height:100%;background:var(--teal);border-radius:3px;transition:width .3s var(--ease);}
+.quiz-step{font-size:12px;color:var(--faint);font-weight:600;letter-spacing:.4px;margin-bottom:12px;}
+.quiz-tag{
+  display:inline-block;font-size:11.5px;font-weight:700;
+  padding:2px 11px;border-radius:999px;margin-bottom:9px;
+  background:var(--teal-soft);color:var(--teal);
+}
+.quiz-tag.tag-red{background:var(--red-soft);color:var(--red);}
+.quiz-tag.tag-atypical{background:var(--amber-soft);color:var(--amber);}
+.quiz-tag.tag-drug{background:var(--gold-soft);color:var(--gold);}
+.quiz-tag.tag-life,.quiz-tag.tag-meta{background:var(--green-soft);color:var(--green);}
+.quiz-tag.tag-3high,.quiz-tag.tag-hep{background:var(--blue-soft);color:var(--blue);}
+.quiz-q{font-size:16.5px;font-weight:700;color:var(--text);line-height:1.6;margin-bottom:16px;}
+.opt-list{display:flex;flex-direction:column;gap:9px;margin-bottom:18px;}
+.opt{
+  width:100%;text-align:left;font:inherit;font-size:14.5px;color:var(--text);
+  background:var(--surface);border:1.5px solid var(--line);
+  border-radius:var(--radius-sm);padding:12px 15px;cursor:pointer;
+  transition:border-color .16s var(--ease),background .16s var(--ease);
+}
+.opt:hover{border-color:var(--teal);background:var(--teal-soft);}
+.opt[aria-pressed="true"]{border-color:var(--teal);background:var(--teal-soft);font-weight:600;box-shadow:inset 3px 0 0 var(--teal);}
+.quiz-nav{display:flex;gap:10px;}
+.btn-main{
+  flex:1;font:inherit;font-size:15px;font-weight:700;color:#fff;
+  background:var(--teal);border:none;border-radius:var(--radius-sm);
+  padding:13px 18px;cursor:pointer;transition:background .16s var(--ease);
+}
+.btn-main:hover:not(:disabled){background:var(--teal-dark);}
+.btn-main:disabled{background:#C3D2D9;cursor:not-allowed;}
+.btn-ghost{
+  font:inherit;font-size:14px;font-weight:600;color:var(--muted);
+  background:var(--surface);border:1.5px solid var(--line);
+  border-radius:var(--radius-sm);padding:13px 18px;cursor:pointer;
+  transition:border-color .16s var(--ease),color .16s var(--ease);
+}
+.btn-ghost:hover{border-color:var(--teal);color:var(--teal);}
+
+/* 勾選式（內視鏡關卡、代謝症候群） */
+.check-list{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
+.check-item{
+  display:flex;align-items:flex-start;gap:13px;text-align:left;
+  width:100%;font:inherit;color:inherit;
+  background:var(--surface);border:1.5px solid var(--line);
+  border-radius:var(--radius-md);padding:13px 15px;cursor:pointer;
+  transition:border-color .16s var(--ease),background .16s var(--ease);
+}
+.check-item:hover{border-color:var(--teal);}
+.check-item[aria-pressed="true"]{border-color:var(--teal);background:var(--teal-soft);}
+.check-box{
+  flex:0 0 auto;width:21px;height:21px;border-radius:6px;margin-top:2px;
+  border:1.5px solid #C3D2D9;background:var(--surface);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;color:#fff;font-weight:700;
+}
+.check-item[aria-pressed="true"] .check-box{background:var(--teal);border-color:var(--teal);}
+.check-box span{opacity:0;transition:opacity .14s var(--ease);}
+.check-item[aria-pressed="true"] .check-box span{opacity:1;}
+.check-body{flex:1;min-width:0;}
+.check-tag{display:block;font-size:11.5px;font-weight:700;color:var(--teal);letter-spacing:.3px;margin-bottom:2px;}
+.check-label{display:block;font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.check-desc{display:block;font-size:12.5px;color:var(--muted);line-height:1.7;}
+
+/* 顏色挑選（糞便顏色） */
+.swatch-list{display:flex;flex-direction:column;gap:10px;margin-bottom:6px;}
+.swatch-item{
+  display:flex;align-items:center;gap:14px;width:100%;text-align:left;
+  font:inherit;color:inherit;background:var(--surface);
+  border:1.5px solid var(--line);border-radius:var(--radius-md);
+  padding:12px 15px;cursor:pointer;transition:border-color .16s var(--ease),background .16s var(--ease);
+}
+.swatch-item:hover{border-color:var(--teal);background:var(--surface-alt);}
+.swatch-item[aria-pressed="true"]{border-color:var(--teal);background:var(--teal-soft);}
+.swatch-dot{width:38px;height:38px;border-radius:50%;flex:0 0 auto;border:2px solid rgba(0,0,0,.09);}
+.swatch-name{font-size:15px;font-weight:600;}
+
+/* 評估結果 */
+.assess-result{display:none;}
+.result-card{
+  border:1.5px solid var(--line);border-left-width:4px;
+  border-radius:var(--radius-md);padding:18px;
+  animation:fade .3s var(--ease);
+}
+.result-score{font-size:44px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-1px;}
+.result-score .of{font-size:16px;font-weight:600;color:var(--faint);letter-spacing:0;}
+.result-advice{font-size:13.5px;color:#53656F;line-height:1.9;margin-top:12px;}
+.info-box{margin-top:14px;padding:13px 15px;border-radius:var(--radius-sm);border-left:3px solid;}
+.info-box .info-title{font-size:12.5px;font-weight:700;margin-bottom:6px;}
+.info-box .info-body{font-size:13px;color:#53656F;line-height:1.85;}
+.info-box.tone-red{background:var(--red-soft);border-color:var(--red);}
+.info-box.tone-red .info-title{color:var(--red-deep);}
+.info-box.tone-amber{background:var(--amber-soft);border-color:var(--amber);}
+.info-box.tone-amber .info-title{color:var(--amber);}
+.info-box.tone-green{background:var(--green-soft);border-color:var(--green);}
+.info-box.tone-green .info-title{color:var(--green);}
+.info-box.tone-teal{background:var(--teal-soft);border-color:var(--teal);}
+.info-box.tone-teal .info-title{color:var(--teal-dark);}
+.solution-card{
+  border:1.5px solid var(--line);border-radius:var(--radius-md);
+  padding:14px 16px;margin-bottom:11px;background:var(--surface-alt);
+}
+.solution-gate{font-size:11.5px;font-weight:700;color:var(--gold);letter-spacing:.5px;margin-bottom:3px;}
+.solution-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.solution-body{font-size:13.5px;color:#53656F;line-height:1.9;}
+
+/* ==========================================================
    Footer
    ========================================================== */
 .footer{
@@ -372,8 +509,13 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
   .qr-label{font-size:10px;}
   .header-spacer{width:64px;}
 
+  .group-bar{padding:8px 12px 0;}
+  .group-btn{font-size:12.5px;margin-right:12px;}
   .tabs{padding:9px 12px;gap:7px;}
   .tab{padding:7px 13px;font-size:13px;}
+  .quiz-q{font-size:15.5px;}
+  .opt{font-size:14px;padding:11px 13px;}
+  .result-score{font-size:36px;}
 
   .body{padding:16px 14px 22px;min-height:340px;}
   .panel-head{margin-bottom:15px;}
@@ -452,14 +594,26 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
     <div class="header-center">
       <h1 class="clinic-name">木子澄安診所</h1>
       <div class="clinic-sub">Muzi Cheng An Clinic</div>
-      <div class="clinic-tool">臨床計算工具</div>
+      <div class="clinic-tool">臨床計算與自我評估</div>
     </div>
     <div class="header-spacer" aria-hidden="true"></div>
   </header>
 
   <!-- ===================== TABS ===================== -->
   <div class="tabs-wrap">
-    <div class="tabs" role="tablist" aria-label="選擇計算工具" id="tablist">
+    <div class="group-bar" role="tablist" aria-label="選擇工具分類" id="grouplist">
+      <button class="group-btn" role="tab" id="group-calc" aria-selected="true" data-group="calc">
+        臨床計算<span class="group-count">6</span>
+      </button>
+      <button class="group-btn" role="tab" id="group-gi" aria-selected="false" tabindex="-1" data-group="gi">
+        腸胃與消化<span class="group-count">7</span>
+      </button>
+      <button class="group-btn" role="tab" id="group-meta" aria-selected="false" tabindex="-1" data-group="meta">
+        代謝與體態<span class="group-count">3</span>
+      </button>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="臨床計算工具" id="tabs-calc" data-group="calc">
       <button class="tab" role="tab" id="tab-bmi" aria-controls="panel-bmi" aria-selected="true" data-tool="bmi">
         BMI<span class="tab-en">身體質量指數</span>
       </button>
@@ -479,6 +633,9 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
         Bristol<span class="tab-en">糞便型態</span>
       </button>
     </div>
+
+    <div class="tabs" role="tablist" aria-label="腸胃與消化自我評估" id="tabs-gi" data-group="gi" hidden></div>
+    <div class="tabs" role="tablist" aria-label="代謝與體態自我評估" id="tabs-meta" data-group="meta" hidden></div>
   </div>
 
   <main class="body">
@@ -945,99 +1102,142 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
 
         <button type="button" class="bristol-card" data-type="1" aria-pressed="false">
           <span class="bristol-num">Type 1</span>
+          <!-- Type 1：分離的硬塊，形如堅果（separate hard lumps, like nuts） -->
           <svg viewBox="0 0 90 70" class="bristol-svg" aria-hidden="true">
-            <ellipse cx="18" cy="28" rx="11" ry="13" fill="#9B7B52" stroke="#6b4e2a" stroke-width="1.5"/>
-            <ellipse cx="18" cy="28" rx="7" ry="9" fill="#B8955F" opacity="0.4"/>
-            <ellipse cx="42" cy="20" rx="10" ry="12" fill="#8B6B42" stroke="#6b4e2a" stroke-width="1.5"/>
-            <ellipse cx="42" cy="20" rx="6" ry="8" fill="#B8955F" opacity="0.4"/>
-            <ellipse cx="65" cy="25" rx="10" ry="12" fill="#9B7B52" stroke="#6b4e2a" stroke-width="1.5"/>
-            <ellipse cx="65" cy="25" rx="6" ry="8" fill="#B8955F" opacity="0.4"/>
-            <ellipse cx="28" cy="50" rx="10" ry="12" fill="#8B6B42" stroke="#6b4e2a" stroke-width="1.5"/>
-            <ellipse cx="28" cy="50" rx="6" ry="8" fill="#B8955F" opacity="0.4"/>
-            <ellipse cx="54" cy="52" rx="10" ry="11" fill="#9B7B52" stroke="#6b4e2a" stroke-width="1.5"/>
-            <ellipse cx="54" cy="52" rx="6" ry="7" fill="#B8955F" opacity="0.4"/>
+            <g fill="#7A5A2E" stroke="#553F1D" stroke-width="1.5" stroke-linejoin="round">
+              <path d="M9,25 C8,18 12,12 18,13 C23,11 29,16 29,22 C31,28 26,34 20,33 C14,34 9,31 9,25 Z"/>
+              <path d="M34,20 C33,13 37,7 43,8 C48,6 54,11 54,17 C56,23 51,29 45,28 C39,29 34,26 34,20 Z"/>
+              <path d="M58,26 C57,19 61,13 67,14 C72,12 78,17 78,23 C80,29 75,35 69,34 C63,35 58,32 58,26 Z"/>
+              <path d="M20,51 C19,44 23,38 29,39 C34,37 40,42 40,48 C42,54 37,60 31,59 C25,60 20,57 20,51 Z"/>
+              <path d="M47,53 C46,46 50,40 56,41 C61,39 67,44 67,50 C69,56 64,62 58,61 C52,62 47,59 47,53 Z"/>
+            </g>
+            <g fill="#fff" opacity="0.14">
+              <ellipse cx="17" cy="19" rx="5" ry="3"/><ellipse cx="42" cy="14" rx="5" ry="3"/>
+              <ellipse cx="66" cy="20" rx="5" ry="3"/><ellipse cx="28" cy="45" rx="5" ry="3"/>
+              <ellipse cx="55" cy="47" rx="5" ry="3"/>
+            </g>
           </svg>
           <span class="bristol-label">分離硬球</span>
         </button>
 
         <button type="button" class="bristol-card" data-type="2" aria-pressed="false">
           <span class="bristol-num">Type 2</span>
+          <!-- Type 2：香腸狀但表面凹凸成塊（sausage-shaped but lumpy） -->
           <svg viewBox="0 0 90 70" class="bristol-svg" aria-hidden="true">
-            <path d="M12 35 Q15 22 28 20 Q38 18 45 22 Q52 18 62 20 Q75 22 78 35 Q75 50 62 52 Q52 54 45 50 Q38 54 28 52 Q15 50 12 35Z" fill="#9B7B52" stroke="#6b4e2a" stroke-width="1.5"/>
-            <ellipse cx="22" cy="28" rx="8" ry="6" fill="#B8955F" opacity="0.5"/>
-            <ellipse cx="38" cy="24" rx="7" ry="5" fill="#B8955F" opacity="0.5"/>
-            <ellipse cx="54" cy="24" rx="7" ry="5" fill="#B8955F" opacity="0.5"/>
-            <ellipse cx="68" cy="28" rx="7" ry="6" fill="#B8955F" opacity="0.5"/>
-            <ellipse cx="30" cy="44" rx="7" ry="5" fill="#B8955F" opacity="0.4"/>
-            <ellipse cx="52" cy="46" rx="8" ry="5" fill="#B8955F" opacity="0.4"/>
+            <path d="M10,35 C10,27 14,22 21,23 C24,17 32,17 35,23 C39,16 48,16 51,23 C55,17 63,17 66,23
+                     C74,23 80,27 80,35 C80,43 74,47 66,47 C63,53 55,53 51,47 C48,54 39,54 35,47
+                     C32,53 24,53 21,47 C14,47 10,43 10,35 Z"
+                  fill="#8A6636" stroke="#63481F" stroke-width="1.5" stroke-linejoin="round"/>
+            <g fill="none" stroke="#63481F" stroke-width="1.2" opacity="0.5" stroke-linecap="round">
+              <path d="M35,24 C33,30 33,40 35,46"/>
+              <path d="M51,24 C49,30 49,40 51,46"/>
+              <path d="M66,24 C64,30 64,40 66,46"/>
+              <path d="M21,24 C19,30 19,40 21,46"/>
+            </g>
+            <g fill="#fff" opacity="0.16">
+              <ellipse cx="28" cy="28" rx="5" ry="3"/><ellipse cx="43" cy="27" rx="5" ry="3"/>
+              <ellipse cx="59" cy="27" rx="5" ry="3"/><ellipse cx="73" cy="30" rx="4" ry="2.5"/>
+            </g>
           </svg>
           <span class="bristol-label">凹凸香腸狀</span>
         </button>
 
         <button type="button" class="bristol-card" data-type="3" aria-pressed="false">
           <span class="bristol-num">Type 3</span>
+          <!-- Type 3：香腸狀，表面有裂紋（like a sausage but with cracks on its surface） -->
           <svg viewBox="0 0 90 70" class="bristol-svg" aria-hidden="true">
-            <rect x="10" y="22" width="70" height="28" rx="14" fill="#9B7B52" stroke="#6b4e2a" stroke-width="1.5"/>
-            <rect x="10" y="22" width="70" height="28" rx="14" fill="#B8955F" opacity="0.2"/>
-            <path d="M22 28 L26 34" stroke="#6b4e2a" stroke-width="1.2" stroke-linecap="round"/>
-            <path d="M34 24 L38 32" stroke="#6b4e2a" stroke-width="1.2" stroke-linecap="round"/>
-            <path d="M46 26 L49 33" stroke="#6b4e2a" stroke-width="1.2" stroke-linecap="round"/>
-            <path d="M58 25 L62 32" stroke="#6b4e2a" stroke-width="1.2" stroke-linecap="round"/>
-            <path d="M26 36 L30 42" stroke="#6b4e2a" stroke-width="1.2" stroke-linecap="round"/>
-            <path d="M50 37 L54 43" stroke="#6b4e2a" stroke-width="1.2" stroke-linecap="round"/>
+            <rect x="9" y="22" width="72" height="27" rx="13.5" fill="#8A6636" stroke="#63481F" stroke-width="1.5"/>
+            <g fill="none" stroke="#4E381A" stroke-width="1.4" opacity="0.55" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M24,23 L21,30 L25,37 L22,48"/>
+              <path d="M38,22 L35,31 L39,39 L36,48"/>
+              <path d="M52,23 L49,31 L53,38 L50,48"/>
+              <path d="M65,24 L63,31 L66,38 L64,47"/>
+              <path d="M31,27 L28,34"/>
+              <path d="M45,33 L43,41"/>
+              <path d="M59,28 L57,35"/>
+            </g>
+            <ellipse cx="30" cy="28" rx="12" ry="3.5" fill="#fff" opacity="0.16"/>
           </svg>
           <span class="bristol-label">表面裂紋</span>
         </button>
 
         <button type="button" class="bristol-card" data-type="4" aria-pressed="false">
           <span class="bristol-num">Type 4</span>
+          <!-- Type 4：光滑柔軟的香腸或蛇形（like a sausage or snake, smooth and soft） -->
           <svg viewBox="0 0 90 70" class="bristol-svg" aria-hidden="true">
-            <path d="M12 36 Q14 26 24 24 Q45 20 66 24 Q76 26 78 36 Q76 46 66 48 Q45 52 24 48 Q14 46 12 36Z" fill="#8B7040" stroke="#5a4520" stroke-width="1.5"/>
-            <path d="M20 30 Q45 26 70 30" stroke="#B8A060" stroke-width="1.5" fill="none" opacity="0.5"/>
-            <path d="M18 36 Q45 32 72 36" stroke="#B8A060" stroke-width="1" fill="none" opacity="0.3"/>
-            <ellipse cx="45" cy="36" rx="28" ry="8" fill="#A08848" opacity="0.3"/>
+            <path d="M13,46 C23,47 25,31 37,29 C49,27 53,45 65,43 C72,42 76,36 78,30"
+                  fill="none" stroke="#63481F" stroke-width="20" stroke-linecap="round"/>
+            <path d="M13,46 C23,47 25,31 37,29 C49,27 53,45 65,43 C72,42 76,36 78,30"
+                  fill="none" stroke="#8A6636" stroke-width="17" stroke-linecap="round"/>
+            <path d="M15,42 C24,43 26,27 37,25 C48,23 53,41 64,39 C70,38 74,33 76,28"
+                  fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" opacity="0.17"/>
           </svg>
           <span class="bristol-label">光滑柔軟</span>
         </button>
 
         <button type="button" class="bristol-card" data-type="5" aria-pressed="false">
           <span class="bristol-num">Type 5</span>
+          <!-- Type 5：邊緣清楚的柔軟小塊（soft blobs with clear-cut edges） -->
           <svg viewBox="0 0 90 70" class="bristol-svg" aria-hidden="true">
-            <ellipse cx="20" cy="30" rx="13" ry="10" fill="#A08848" stroke="#6b5520" stroke-width="1.5"/>
-            <ellipse cx="20" cy="30" rx="8" ry="6" fill="#C8A860" opacity="0.4"/>
-            <ellipse cx="48" cy="24" rx="12" ry="9" fill="#9B7B40" stroke="#6b5520" stroke-width="1.5"/>
-            <ellipse cx="48" cy="24" rx="7" ry="5" fill="#C8A860" opacity="0.4"/>
-            <ellipse cx="70" cy="32" rx="11" ry="9" fill="#A08848" stroke="#6b5520" stroke-width="1.5"/>
-            <ellipse cx="70" cy="32" rx="7" ry="5" fill="#C8A860" opacity="0.4"/>
-            <ellipse cx="32" cy="50" rx="11" ry="9" fill="#9B7B40" stroke="#6b5520" stroke-width="1.5"/>
-            <ellipse cx="32" cy="50" rx="7" ry="5" fill="#C8A860" opacity="0.4"/>
-            <ellipse cx="60" cy="52" rx="10" ry="8" fill="#A08848" stroke="#6b5520" stroke-width="1.5"/>
-            <ellipse cx="60" cy="52" rx="6" ry="5" fill="#C8A860" opacity="0.4"/>
+            <g fill="#96763C" stroke="#6E5527" stroke-width="1.5">
+              <path d="M9,27 C9,20 15,15 23,16 C31,15 37,20 36,27 C36,34 30,38 22,37 C14,37 9,33 9,27 Z"/>
+              <path d="M42,23 C42,17 48,12 55,13 C62,12 68,17 67,23 C67,30 61,34 54,33 C47,33 42,29 42,23 Z"/>
+              <path d="M22,49 C22,43 28,38 36,39 C43,38 49,43 48,49 C48,56 42,60 35,59 C27,59 22,55 22,49 Z"/>
+              <path d="M55,51 C55,45 60,41 67,42 C73,41 78,45 77,51 C77,57 72,60 66,59 C59,59 55,56 55,51 Z"/>
+            </g>
+            <g fill="#fff" opacity="0.17">
+              <ellipse cx="20" cy="22" rx="7" ry="3.5"/><ellipse cx="53" cy="19" rx="7" ry="3.5"/>
+              <ellipse cx="33" cy="45" rx="7" ry="3.5"/><ellipse cx="65" cy="47" rx="6" ry="3"/>
+            </g>
           </svg>
           <span class="bristol-label">柔軟小塊</span>
         </button>
 
         <button type="button" class="bristol-card" data-type="6" aria-pressed="false">
           <span class="bristol-num">Type 6</span>
+          <!-- Type 6：邊緣蓬鬆不整的糊狀（fluffy pieces with ragged edges, a mushy stool） -->
           <svg viewBox="0 0 90 70" class="bristol-svg" aria-hidden="true">
-            <path d="M10 38 Q12 24 22 20 Q32 16 40 22 Q48 16 58 18 Q70 20 78 30 Q82 40 74 50 Q64 58 50 56 Q36 60 24 54 Q10 48 10 38Z" fill="#A08848" stroke="#6b5520" stroke-width="1.5"/>
-            <path d="M15 30 Q28 24 42 28 Q56 24 70 30" stroke="#C8A860" stroke-width="1.2" fill="none" opacity="0.45"/>
-            <path d="M12 42 Q25 36 40 40 Q55 36 72 42" stroke="#C8A860" stroke-width="1.2" fill="none" opacity="0.35"/>
-            <path d="M20 52 Q35 46 50 50 Q62 47 72 50" stroke="#C8A860" stroke-width="1" fill="none" opacity="0.3"/>
-            <ellipse cx="44" cy="38" rx="20" ry="10" fill="#C8A860" opacity="0.2"/>
+            <!-- 由多個圓形聚合成蓬鬆不規則的邊緣：先畫深色輪廓層，再疊上淺色填色層 -->
+            <g fill="#6E5527" stroke="#6E5527" stroke-width="2.6" stroke-linejoin="round">
+              <circle cx="24" cy="32" r="11"/><circle cx="36" cy="25" r="12"/><circle cx="50" cy="27" r="12"/>
+              <circle cx="62" cy="33" r="11"/><circle cx="18" cy="41" r="8"/><circle cx="30" cy="44" r="12"/>
+              <circle cx="44" cy="42" r="13"/><circle cx="58" cy="45" r="11"/><circle cx="69" cy="41" r="8"/>
+              <circle cx="25" cy="51" r="7"/><circle cx="38" cy="53" r="9"/><circle cx="52" cy="54" r="9"/>
+              <circle cx="64" cy="52" r="7"/>
+            </g>
+            <g fill="#9C7C40">
+              <circle cx="24" cy="32" r="11"/><circle cx="36" cy="25" r="12"/><circle cx="50" cy="27" r="12"/>
+              <circle cx="62" cy="33" r="11"/><circle cx="18" cy="41" r="8"/><circle cx="30" cy="44" r="12"/>
+              <circle cx="44" cy="42" r="13"/><circle cx="58" cy="45" r="11"/><circle cx="69" cy="41" r="8"/>
+              <circle cx="25" cy="51" r="7"/><circle cx="38" cy="53" r="9"/><circle cx="52" cy="54" r="9"/>
+              <circle cx="64" cy="52" r="7"/>
+            </g>
+            <g fill="none" stroke="#fff" stroke-width="1.4" opacity="0.2" stroke-linecap="round">
+              <path d="M24,31 C32,27 41,31 48,27 C54,24 60,27 65,27"/>
+              <path d="M23,43 C31,40 39,44 47,40 C55,37 62,42 68,40"/>
+            </g>
+            <g fill="#9C7C40" stroke="#6E5527" stroke-width="1.2">
+              <circle cx="9" cy="58" r="4"/><circle cx="13" cy="61" r="3"/>
+              <circle cx="81" cy="56" r="4"/><circle cx="77" cy="60" r="3"/>
+            </g>
           </svg>
           <span class="bristol-label">糊狀不成形</span>
         </button>
 
         <button type="button" class="bristol-card" data-type="7" aria-pressed="false">
           <span class="bristol-num">Type 7</span>
+          <!-- Type 7：完全液狀，不含固形物（watery, no solid pieces, entirely liquid） -->
           <svg viewBox="0 0 90 70" class="bristol-svg" aria-hidden="true">
-            <path d="M8 44 Q10 30 20 26 Q30 20 42 24 Q52 18 64 22 Q76 26 80 38 Q84 50 74 58 Q62 65 46 63 Q30 65 18 58 Q6 52 8 44Z" fill="#B8A050" stroke="#7a6530" stroke-width="1.5" opacity="0.9"/>
-            <ellipse cx="44" cy="44" rx="26" ry="14" fill="#D4B860" opacity="0.35"/>
-            <path d="M16 36 Q30 30 46 34 Q60 30 74 36" stroke="#D4B860" stroke-width="1.2" fill="none" opacity="0.5"/>
-            <ellipse cx="24" cy="56" rx="8" ry="5" fill="#B8A050" stroke="#7a6530" stroke-width="1" opacity="0.7"/>
-            <ellipse cx="66" cy="60" rx="6" ry="4" fill="#B8A050" stroke="#7a6530" stroke-width="1" opacity="0.6"/>
-            <ellipse cx="44" cy="38" rx="12" ry="6" fill="#E0C870" opacity="0.25"/>
+            <path d="M7,40 C5,32 14,26 25,27 C32,22 44,21 51,26 C62,23 74,27 80,33
+                     C87,38 86,48 77,52 C70,58 55,61 43,59 C30,61 16,57 10,51 C7,49 6,44 7,40 Z"
+                  fill="#B39A44" stroke="#8A7526" stroke-width="1.3"/>
+            <ellipse cx="42" cy="40" rx="25" ry="9" fill="#fff" opacity="0.16"/>
+            <path d="M18,35 C28,31 38,35 48,32 C57,29 66,33 73,32" fill="none" stroke="#fff" stroke-width="1.3" opacity="0.24" stroke-linecap="round"/>
+            <g fill="#B39A44" stroke="#8A7526" stroke-width="1.1">
+              <ellipse cx="79" cy="22" rx="4.5" ry="2.8"/>
+              <ellipse cx="14" cy="62" rx="5.5" ry="3.2"/>
+              <ellipse cx="68" cy="63" rx="3.5" ry="2.2"/>
+            </g>
           </svg>
           <span class="bristol-label">完全液狀</span>
         </button>
@@ -1080,10 +1280,59 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
 
   var $ = function(id){ return document.getElementById(id); };
 
+  // 各工具最近一次的結果文字，供「複製結果」使用
+  var COPY = {};
+  // 自我評估模組的分頁與面板由資料產生，必須早於下方所有事件綁定，
+  // 因此這些狀態變數也必須在 buildAssessments() 之前就完成指派
+  var RESETTERS = {};
+  var QSTATE = {};
+  var TONE = {
+    green:{ color:'#2E7D4F', bg:'#E9F5EE' },
+    amber:{ color:'#B45A00', bg:'#FFF5E6' },
+    red:{ color:'#C0392B', bg:'#FBEBE9' }
+  };
+  var ASSESS = assessSpecs();
+  buildAssessments();
+
   /* ======================================================
      Tabs + hash routing
      ====================================================== */
   var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+  var groupBtns = Array.prototype.slice.call(document.querySelectorAll('.group-btn'));
+  var TOOL_GROUP = {};
+  tabs.forEach(function(t){
+    TOOL_GROUP[t.dataset.tool] = t.closest('.tabs').dataset.group;
+  });
+
+  function switchGroup(group){
+    groupBtns.forEach(function(b){
+      var on = b.dataset.group === group;
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+      b.tabIndex = on ? 0 : -1;
+    });
+    document.querySelectorAll('.tabs').forEach(function(row){
+      row.hidden = row.dataset.group !== group;
+    });
+  }
+
+  groupBtns.forEach(function(b){
+    b.addEventListener('click', function(){
+      var group = b.dataset.group;
+      switchGroup(group);
+      // 切換分類時跳到該分類的第一個工具
+      var first = document.querySelector('.tabs[data-group="' + group + '"] .tab');
+      if (first) switchTool(first.dataset.tool);
+    });
+    b.addEventListener('keydown', function(e){
+      var i = groupBtns.indexOf(b), next = null;
+      if (e.key === 'ArrowRight') next = (i + 1) % groupBtns.length;
+      else if (e.key === 'ArrowLeft') next = (i - 1 + groupBtns.length) % groupBtns.length;
+      if (next === null) return;
+      e.preventDefault();
+      groupBtns[next].click();
+      groupBtns[next].focus();
+    });
+  });
   var TOOLS = tabs.map(function(t){ return t.dataset.tool; });
 
   function switchTool(tool, opts){
@@ -1102,6 +1351,7 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
       p.classList.toggle('active', on);
       p.hidden = !on;
     });
+    switchGroup(TOOL_GROUP[tool] || 'calc');
     if (opts.updateHash !== false && location.hash.slice(1) !== tool) {
       // 本機以 file:// 開啟時部分瀏覽器會擋下 replaceState
       try { history.replaceState(null, '', '#' + tool); } catch (e) { location.hash = tool; }
@@ -1204,8 +1454,6 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
   /* ======================================================
      Copy result
      ====================================================== */
-  var COPY = { bmi:'', tdee:'', fib4:'', rfactor:'', childpugh:'', bristol:'' };
-
   document.querySelectorAll('[data-copy]').forEach(function(btn){
     btn.addEventListener('click', function(){
       var tool = btn.dataset.copy;
@@ -1242,6 +1490,7 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
   document.querySelectorAll('[data-reset]').forEach(function(btn){
     btn.addEventListener('click', function(){
       var tool = btn.dataset.reset;
+      if (RESETTERS[tool]) { RESETTERS[tool](); return; }
       var panel = $('panel-' + tool);
       panel.querySelectorAll('input').forEach(function(el){
         el.value = '';
@@ -1665,6 +1914,568 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
       show('bristol', true);
     });
   });
+
+  /* ======================================================
+     自我評估模組：資料
+     ====================================================== */
+  function assessSpecs(){
+    return [
+      /* ---------- 腸胃與消化 ---------- */
+      {
+        id:'gerdq', group:'gi', kind:'quiz', tab:'胃酸逆流', tabEn:'GerdQ 量表',
+        title:'胃酸逆流與胃黏膜受損風險', sub:'改編自 GerdQ 量表',
+        scoreLabel:'總分',
+        intro:'依照最近的症狀作答，共 8 題。題目分為頻率、非典型症狀、警訊症狀與藥物依賴四類。',
+        note:'※ 本評估改編自 GerdQ 量表，僅供初步篩查，確診需由醫師評估',
+        max:20,
+        qs:[
+          { tag:'頻率評估', tagCls:'tag-freq', q:'過去一週內，胸口灼熱（火燒心）或胃酸湧上喉嚨的現象超過 2 天？',
+            opts:['否，幾乎沒有','有，但少於 2 天','是，超過 2 天','幾乎天天發生'], scores:[0,1,2,3] },
+          { tag:'頻率評估', tagCls:'tag-freq', q:'逆流症狀是否在飯後、彎腰或躺下時明顯加重？',
+            opts:['否','有時','是，幾乎每次都這樣'], scores:[0,1,2] },
+          { tag:'非典型症狀', tagCls:'tag-atypical', q:'是否常有查不出原因的長期慢性咳嗽、喉嚨異物感（卡卡的），或聲音沙啞？',
+            opts:['否','偶爾有，以為是過敏或感冒','是，已持續超過一個月'], scores:[0,1,2] },
+          { tag:'非典型症狀', tagCls:'tag-atypical', q:'是否曾有口腔異味、口水增加，或清晨起床感覺喉嚨有酸苦感？',
+            opts:['否','偶爾','是，蠻常見的'], scores:[0,1,2] },
+          { tag:'警訊症狀', tagCls:'tag-red', q:'吃東西時吞嚥困難、常覺得食物卡在食道？',
+            opts:['否','偶爾喝水才能順下','是，吞嚥時明顯有阻礙感'], scores:[0,1,3] },
+          { tag:'警訊症狀', tagCls:'tag-red', q:'常莫名其妙胃痛到睡不著，或夜間因逆流嗆咳醒來？',
+            opts:['否','偶爾一兩次','是，常常發生'], scores:[0,1,3] },
+          { tag:'藥物依賴', tagCls:'tag-drug', q:'是否自行購買胃藥、制酸劑服用超過一個月，且停藥就復發？',
+            opts:['沒有用過','偶爾用，症狀緩解就停','是，停藥就復發，已超過一個月'], scores:[0,1,3] },
+          { tag:'藥物依賴', tagCls:'tag-drug', q:'是否曾被醫師診斷為胃食道逆流，或曾接受胃鏡發現食道發炎？',
+            opts:['否','不確定','是'], scores:[0,1,2] }
+        ],
+        grade:function(total, s){
+          if (s[4] >= 3 || s[5] >= 3) return { level:'需儘速就醫', tone:'red',
+            advice:'您的評估出現警訊症狀（吞嚥困難或夜間症狀），這類表現可能代表食道黏膜受損，甚至需要排除食道狹窄或巴瑞特食道症。請告知醫師並優先安排胃鏡檢查，切勿單靠胃藥自行緩解。' };
+          if (total <= 5) return { level:'輕度逆流', tone:'green',
+            advice:'目前症狀較輕微，屬於間歇性不適。建議調整生活習慣：少量多餐、飯後勿立即躺下、睡前 2 小時禁食、減少咖啡與辛辣食物。若症狀持續，告知醫師評估是否用藥。' };
+          if (total <= 12) return { level:'中度逆流風險', tone:'amber',
+            advice:'您有多項逆流相關症狀，胃黏膜可能已受到影響。建議告知醫師，討論是否需要短期藥物治療（質子幫浦抑制劑 PPI），並考慮安排胃鏡確認食道狀況。' };
+          return { level:'高度逆流風險', tone:'red',
+            advice:'您的症狀頻繁且多樣，包含可能的非典型症狀或藥物依賴。建議在診間告知醫師完整狀況，進行胃鏡評估，以排除食道炎、巴瑞特食道或潰瘍。' };
+        }
+      },
+      {
+        id:'fatty', group:'gi', kind:'quiz', tab:'脂肪肝', tabEn:'肝病風險快篩',
+        title:'脂肪肝與肝病風險快篩', sub:'代謝指標、三高病史、飲食習慣與慢性肝炎背景',
+        scoreLabel:'風險評分',
+        intro:'共 8 題，涵蓋代謝指標、三高病史、生活飲食與慢性肝炎背景。',
+        note:'※ 本評估僅供初步篩查參考，確診需由醫師進行影像及抽血評估',
+        max:17,
+        qs:[
+          { tag:'代謝指標', tagCls:'tag-meta', q:'你的 BMI 是否超過 24？（BMI = 體重 kg ÷ 身高 m²）',
+            opts:['否，BMI < 24','BMI 24–27（過重）','BMI > 27（肥胖）'], scores:[0,1,2] },
+          { tag:'代謝指標', tagCls:'tag-meta', q:'腰圍是否超標？（男性 ≥ 90 cm，女性 ≥ 80 cm）',
+            opts:['否','是'], scores:[0,2] },
+          { tag:'三高病史', tagCls:'tag-3high', q:'是否曾被告知有高血脂（三酸甘油酯偏高或 HDL 偏低）？',
+            opts:['否','不確定','是'], scores:[0,1,2] },
+          { tag:'三高病史', tagCls:'tag-3high', q:'是否有高血壓或糖尿病（含前期）病史，或正在用藥控制？',
+            opts:['否','有一項','兩項都有'], scores:[0,1,2] },
+          { tag:'生活與飲食', tagCls:'tag-life', q:'是否經常應酬喝酒，或每週飲酒超過 3 次？',
+            opts:['否，幾乎不喝','偶爾喝，每月少於 4 次','是，幾乎每週都喝'], scores:[0,1,2] },
+          { tag:'生活與飲食', tagCls:'tag-life', q:'是否喜歡喝手搖飲料、含糖飲料，或常吃甜食、精緻澱粉？',
+            opts:['幾乎不','每週 2–3 次','幾乎天天'], scores:[0,1,2] },
+          { tag:'慢性肝炎背景', tagCls:'tag-hep', q:'是否為 B 型或 C 型肝炎帶原者，或曾被告知肝功能（GOT／GPT）偏高？',
+            opts:['否','曾偶爾偏高，但已正常','是，確認帶原或持續偏高'], scores:[0,1,3] },
+          { tag:'篩檢記錄', tagCls:'tag-drug', q:'最近一次做腹部超音波（肝臟篩查）是什麼時候？',
+            opts:['一年內','一到三年前','超過三年或從未做過'], scores:[0,1,2] }
+        ],
+        grade:function(total, s){
+          if (s[6] >= 3) return { level:'需優先評估', tone:'red',
+            advice:'您為慢性肝炎帶原者或肝功能持續異常，這類族群發生肝硬化或肝癌的風險較高。建議定期追蹤肝功能、甲型胎兒蛋白（AFP）及腹部超音波，並在診間告知醫師完整病史。' };
+          if (total <= 4) return { level:'低風險', tone:'green',
+            advice:'您目前脂肪肝相關風險因子較少。建議維持均衡飲食、控制體重、減少精緻糖與酒精攝取，並每 2–3 年定期接受健康檢查。' };
+          if (total <= 9) return { level:'中風險', tone:'amber',
+            advice:'您有數項脂肪肝的代謝風險因子。建議告知醫師，考慮安排腹部超音波評估肝臟狀況，同時積極改善飲食並增加運動。' };
+          return { level:'高風險', tone:'red',
+            advice:'您的風險因子較多，脂肪肝或慢性肝病的可能性較高。建議主動告知醫師，安排腹部超音波及肝功能抽血（GOT／GPT、GGT），及早發現並介入。' };
+        }
+      },
+      {
+        id:'stoolcolor', group:'gi', kind:'picker', tab:'糞便顏色', tabEn:'消化道警訊',
+        title:'糞便顏色自我對照', sub:'糞便顏色可反映消化道健康狀態與潛在警訊',
+        scoreLabel:'對照結果',
+        intro:'選擇最接近你近期糞便的顏色，即可顯示可能原因與建議。',
+        note:'※ 本對照僅供衛教參考；糞便持續異常（帶血、顏色改變超過 3 天）請告知醫師',
+        items:[
+          { label:'棕褐色', color:'#8B5C2A', tone:'green', status:'正常',
+            detail:'棕褐色是最健康的糞便顏色，代表膽汁正常代謝、消化功能良好。飲食均衡、腸道功能正常者通常呈現此顏色。' },
+          { label:'深褐色', color:'#4A2C0A', tone:'green', status:'正常偏深',
+            detail:'深褐色通常與攝取較多動物性脂肪及蛋白質有關，膽汁使顏色加深，氣味也較重。屬於正常範圍，無需過度擔心。' },
+          { label:'綠色', color:'#4A7C2F', tone:'amber', status:'留意',
+            detail:'可能原因：一、短時間內吃了大量深綠色蔬菜（菠菜、青花菜）；二、腸道蠕動過快，膽汁來不及完全代謝；三、細菌感染導致腸胃炎。若無其他症狀且飲食正常，可觀察幾天；若持續且伴隨腹痛、腹瀉，建議就醫。' },
+          { label:'黑色／瀝青色', color:'#1A1A1A', tone:'red', status:'需注意',
+            detail:'可能原因：一、食用高鐵質食物（豬血糕、動物內臟）或鐵劑補充品；二、墨魚汁或甘草糖；三、上消化道出血（胃潰瘍、十二指腸潰瘍、胃癌）。若非特殊飲食因素，黑色糞便可能代表上消化道出血，請儘快就醫。' },
+          { label:'鮮紅色', color:'#C0392B', tone:'red', status:'需注意',
+            detail:'可能原因：一、攝取大量紅色食物（火龍果、甜菜根）；二、痔瘡出血（鮮血附著於糞便表面）；三、大腸下段出血、大腸瘜肉或大腸癌。若非飲食因素，鮮紅色糞便應盡快就醫，安排大腸鏡評估。' },
+          { label:'黃色／土黃色', color:'#C8A822', tone:'amber', status:'留意',
+            detail:'可能原因：一、高脂飲食或膽汁分泌不足（膽囊疾病）；二、胰臟外分泌功能不足，脂肪消化不良；三、感染性腹瀉（如賈第鞭毛蟲感染）。若糞便油膩、漂浮於水面，建議就醫評估胰臟與膽道功能。' },
+          { label:'灰白色／陶土色', color:'#C8C0B0', tone:'red', status:'需立即就醫',
+            detail:'灰白色糞便代表膽汁缺乏，可能原因：一、膽管阻塞（膽結石、膽管炎）；二、肝臟疾病（病毒性肝炎、肝硬化）；三、胰臟疾病（胰臟癌）。若糞便呈灰白色且同時出現黃疸（眼白或皮膚泛黃），請立即就醫。' }
+        ]
+      },
+      {
+        id:'polyp', group:'gi', kind:'quiz', tab:'瘜肉風險', tabEn:'腸癌隱形風險',
+        title:'大腸瘜肉與腸癌隱形風險', sub:'涵蓋症狀頻率、警訊紅旗與篩檢記錄',
+        scoreLabel:'風險評分',
+        intro:'共 8 題，涵蓋排便變化、警訊症狀、家族史、飲食與篩檢記錄。',
+        note:'※ 本評估為初步風險篩查，不等同診斷，確認需由醫師評估',
+        max:19,
+        qs:[
+          { tag:'頻率評估', tagCls:'tag-freq', q:'過去一個月內，你是否有排便習慣改變（如突然便秘或腹瀉交替）？',
+            opts:['沒有','偶爾','持續超過兩週'], scores:[0,1,2] },
+          { tag:'頻率評估', tagCls:'tag-freq', q:'是否曾在馬桶或衛生紙上發現血跡，或糞便呈暗紅色、黑色？',
+            opts:['從未發現','偶爾有，但量很少','有，且不只一次'], scores:[0,1,3] },
+          { tag:'非典型症狀', tagCls:'tag-atypical', q:'是否有不明原因的體重減輕（近 3 個月內減少超過 3 公斤）？',
+            opts:['否','有意識地在減重，是','非刻意減重，卻瘦了'], scores:[0,1,3] },
+          { tag:'非典型症狀', tagCls:'tag-atypical', q:'是否常感到腹部悶脹、腸鳴音增加，或左下腹隱隱作痛？',
+            opts:['沒有','偶爾','幾乎每週都有'], scores:[0,1,2] },
+          { tag:'警訊症狀', tagCls:'tag-red', q:'是否曾被告知有大腸瘜肉，或曾做過大腸鏡發現異常？',
+            opts:['否，從未做過大腸鏡','做過，結果正常','是，曾發現瘜肉或異常'], scores:[0,0,3] },
+          { tag:'警訊症狀', tagCls:'tag-red', q:'家族中是否有一等親（父母、兄弟姊妹）曾罹患大腸癌或大腸瘜肉？',
+            opts:['否','不確定','是'], scores:[0,1,2] },
+          { tag:'生活與飲食', tagCls:'tag-life', q:'飲食習慣如何？',
+            opts:['多蔬果、少紅肉、少加工食品','一般，沒特別注意','常吃紅肉、燒烤、香腸、火腿等'], scores:[0,1,2] },
+          { tag:'篩檢記錄', tagCls:'tag-drug', q:'你最近一次做大腸癌篩檢（糞便潛血）是什麼時候？',
+            opts:['一年內','一到三年前','超過三年或從未做過'], scores:[0,1,2] }
+        ],
+        grade:function(total){
+          if (total <= 3) return { level:'低風險', tone:'green',
+            advice:'目前風險訊號較少。建議維持高纖、少紅肉的飲食習慣，並於 50 歲後定期接受糞便潛血檢查。' };
+          if (total <= 8) return { level:'中風險', tone:'amber',
+            advice:'您有數項值得注意的風險因子。建議諮詢醫師是否需提前安排大腸鏡檢查，並主動告知家族病史，以利醫師判斷篩檢頻率。' };
+          return { level:'高風險', tone:'red',
+            advice:'評估結果顯示多項警訊，建議告知醫師並儘早安排大腸鏡檢查。若症狀伴隨血便或體重下降，請勿拖延就醫。' };
+        }
+      },
+      {
+        id:'colon', group:'gi', kind:'quiz', tab:'大腸癌風險', tabEn:'危險因子評估',
+        title:'大腸癌風險自我評估', sub:'依據危險因子評估相對風險',
+        scoreLabel:'風險評分',
+        intro:'共 7 題，依年齡、家族史、病史與生活習慣評估相對風險。',
+        note:'※ 本評估為相對風險參考，不代表罹癌診斷',
+        max:12,
+        qs:[
+          { q:'你的年齡？', opts:['50 歲以下','50–59 歲','60–69 歲','70 歲以上'], scores:[0,1,2,3] },
+          { q:'家族中是否有人曾罹患大腸癌或大腸瘜肉？', opts:['無','二等親（祖父母、叔伯）','一等親（父母、兄弟姊妹、子女）'], scores:[0,1,2] },
+          { q:'你是否曾被診斷過大腸瘜肉？', opts:['否','是'], scores:[0,2] },
+          { q:'你的飲食習慣？', opts:['多蔬果、少紅肉','一般均衡','常吃紅肉或加工肉品'], scores:[0,0,1] },
+          { q:'你是否有規律運動（每週 3 次以上，每次 30 分鐘）？', opts:['有','偶爾','幾乎沒有'], scores:[0,1,1] },
+          { q:'你是否有長期便秘、腹瀉或血便的情形？', opts:['否','偶爾','經常'], scores:[0,1,2] },
+          { q:'你是否有吸菸習慣？', opts:['否','已戒菸','目前仍在吸菸'], scores:[0,1,1] }
+        ],
+        grade:function(total){
+          if (total <= 2) return { level:'低風險', tone:'green',
+            advice:'目前風險因子較少。建議維持健康飲食與規律運動，並於 50 歲後定期接受大腸癌篩檢（糞便潛血檢查）。' };
+          if (total <= 5) return { level:'中風險', tone:'amber',
+            advice:'您有部分風險因子。建議諮詢醫師是否需要提早接受大腸鏡檢查，並積極改善飲食及生活習慣。' };
+          return { level:'高風險', tone:'red',
+            advice:'您的風險因子較多，建議主動告知醫師並安排大腸鏡檢查，以利早期發現與治療。請勿輕忽腸道症狀的變化。' };
+        }
+      },
+      {
+        id:'rdq', group:'gi', kind:'quiz', tab:'RDQ 逆流', tabEn:'症狀嚴重度',
+        title:'胃食道逆流自我檢測（RDQ）', sub:'依症狀頻率與困擾程度計分',
+        scoreLabel:'總分',
+        intro:'共 6 題，分別評估火燒心、逆流與上腹症狀的頻率及困擾程度。',
+        note:'※ RDQ 量表僅供初步篩檢參考，確診需由醫師評估',
+        max:24,
+        qs:[
+          { q:'過去四週內，你是否有胸口灼熱感（俗稱火燒心）？', opts:['沒有','偶爾（每週少於 1 天）','有時（每週 1–2 天）','經常（每週 3–4 天）','幾乎天天'], scores:[0,1,2,3,4] },
+          { q:'胸口灼熱感對你的生活有多大困擾？', opts:['不困擾','輕微困擾','中度困擾','嚴重困擾','非常嚴重'], scores:[0,1,2,3,4] },
+          { q:'過去四週內，你是否有胃酸或食物逆流到喉嚨或口腔的感覺？', opts:['沒有','偶爾','有時','經常','幾乎天天'], scores:[0,1,2,3,4] },
+          { q:'逆流症狀對你的生活有多大困擾？', opts:['不困擾','輕微困擾','中度困擾','嚴重困擾','非常嚴重'], scores:[0,1,2,3,4] },
+          { q:'過去四週內，你是否有上腹疼痛或不適感？', opts:['沒有','偶爾','有時','經常','幾乎天天'], scores:[0,1,2,3,4] },
+          { q:'上腹症狀對你的生活有多大困擾？', opts:['不困擾','輕微困擾','中度困擾','嚴重困擾','非常嚴重'], scores:[0,1,2,3,4] }
+        ],
+        grade:function(total){
+          if (total <= 4) return { level:'低度逆流', tone:'green',
+            advice:'目前症狀程度較輕，屬於偶發性不適。建議避免暴飲暴食、減少咖啡因及辛辣食物，飯後勿立即平躺。' };
+          if (total <= 10) return { level:'中度逆流', tone:'amber',
+            advice:'您有中度胃食道逆流症狀。建議調整飲食習慣（少量多餐、避免高脂食物）、睡前 2–3 小時勿進食，並告知醫師評估是否需要藥物治療。' };
+          return { level:'高度逆流', tone:'red',
+            advice:'您的症狀偏重，可能已影響生活品質。建議告知醫師進行進一步評估，包括是否需要胃鏡檢查或長期藥物治療。' };
+        }
+      },
+      {
+        id:'scope', group:'gi', kind:'check', tab:'內視鏡關卡', tabEn:'常見疑慮解方',
+        title:'內視鏡檢查關卡挑戰', sub:'找出最擔心的環節，提供對應說明',
+        intro:'勾選你最擔心的環節（可複選），下方會顯示對應的說明與解方。',
+        note:'※ 仍有疑問歡迎透過 LINE 諮詢並預約內視鏡',
+        submitText:'查看解方', requireOne:true, scoreLabel:'勾選關卡',
+        items:[
+          { tag:'A 關卡', label:'怕痛、怕嘔吐反胃', desc:'我怕管子伸進喉嚨或肚子裡，會反胃、很不舒服。',
+            solution:'現代無痛內視鏡採靜脈輸注鎮靜劑，讓您在淺眠狀態下完成檢查，多數人幾乎感覺不到不適，醒來後通常只覺得睡了一覺，整個過程約 15–30 分鐘。若不想使用鎮靜，也可選擇清醒式並搭配喉嚨局部麻醉，醫護人員全程陪同引導呼吸。' },
+          { tag:'B 關卡', label:'清腸很痛苦、藥水難喝', desc:'我聽說喝瀉藥要跑很多次廁所，藥水很難喝。',
+            solution:'目前有低容量清腸藥（約需飲用 1–2 公升），口感也已改善，可冰鎮後飲用以降低異味。清腸過程約 2–4 小時，建議安排在方便如廁的環境進行。清腸品質越好，醫師視野越清楚，越能找出潛在瘜肉。' },
+          { tag:'C 關卡', label:'擔心麻醉有危險', desc:'我擔心麻醉會有危險，睡著了醒不過來。',
+            solution:'內視鏡使用的是輕度鎮靜而非全身麻醉，劑量遠低於手術用麻醉，並由受過訓練的醫護人員全程監測心跳、血壓與血氧。多數健康成人耐受性良好；若有心臟病、睡眠呼吸中止等病史，請事先告知醫師，我們會調整方案。' },
+          { tag:'D 關卡', label:'不知道怎麼準備', desc:'我不知道檢查前該怎麼準備，低渣飲食聽起來很麻煩。',
+            solution:'低渣飲食比想像中單純：檢查前兩天避免高纖蔬菜、堅果、糙米，改吃白飯、白吐司、蛋、豆腐、魚肉即可。我們會在預約時提供完整書面說明，依步驟準備即可，有疑問也可透過 LINE 詢問。' }
+        ]
+      },
+
+      /* ---------- 代謝與體態 ---------- */
+      {
+        id:'waist', group:'meta', kind:'waist', tab:'腰圍', tabEn:'代謝症候群指標',
+        title:'腰圍與代謝症候群指標', sub:'依台灣國民健康署標準判定',
+        scoreLabel:'腰圍評估',
+        intro:'請於肚臍水平位置量測腰圍，並選擇生理性別，系統會即時判定是否符合代謝症候群的腰圍指標。',
+        note:'※ 腰圍僅為代謝症候群五項指標之一，完整評估請諮詢醫師'
+      },
+      {
+        id:'metsyn', group:'meta', kind:'check', tab:'代謝症候群', tabEn:'五項指標評估',
+        title:'代謝症候群完整評估', sub:'依台灣國民健康署五項指標判定',
+        intro:'以下五項指標符合三項（含）以上即符合代謝症候群。請依你目前的檢驗數值與用藥狀況勾選。',
+        note:'※ 本評估依據台灣國民健康署代謝症候群判定標準，確認需由醫師評估',
+        submitText:'查看評估結果', requireOne:false, scoreLabel:'符合異常指標數',
+        items:[
+          { tag:'腹部肥胖', label:'腰圍超標', desc:'男性 ≥ 90 cm，女性 ≥ 80 cm（肚臍水平量測）' },
+          { tag:'高血壓指標', label:'血壓偏高', desc:'收縮壓 ≥ 130 mmHg 或舒張壓 ≥ 85 mmHg，或目前正在服用降血壓藥' },
+          { tag:'血糖指標', label:'空腹血糖偏高', desc:'空腹血糖 ≥ 100 mg/dL，或目前正在服用降血糖藥物' },
+          { tag:'血脂指標', label:'三酸甘油酯偏高', desc:'三酸甘油酯（TG）≥ 150 mg/dL，或目前正在服用降血脂藥物' },
+          { tag:'好膽固醇指標', label:'好膽固醇（HDL）偏低', desc:'男性 HDL < 40 mg/dL，女性 HDL < 50 mg/dL' }
+        ]
+      },
+      {
+        id:'diabetes', group:'meta', kind:'quiz', tab:'糖尿病前期', tabEn:'風險自評',
+        title:'糖尿病前期風險自評', sub:'參考 ADA 及台灣糖尿病衛教學會量表',
+        scoreLabel:'風險評分',
+        intro:'共 7 題，依年齡、體位、家族史與生活習慣評估糖尿病前期風險。',
+        note:'※ 本評估參考 ADA 及台灣糖尿病衛教學會量表，僅供初步篩檢參考',
+        max:14,
+        qs:[
+          { q:'你的年齡？', opts:['40 歲以下','40–49 歲','50–59 歲','60 歲以上'], scores:[0,1,2,3] },
+          { q:'你的 BMI（體重 kg ÷ 身高 m²）？', opts:['BMI < 18.5（過輕）','BMI 18.5–24（正常）','BMI 24–27（過重）','BMI > 27（肥胖）'], scores:[0,0,1,2] },
+          { q:'你的腰圍是否超標？（男 ≥ 90 cm，女 ≥ 80 cm）', opts:['否','是'], scores:[0,2] },
+          { q:'家族中（父母或兄弟姊妹）是否有人罹患糖尿病？', opts:['否','是'], scores:[0,1] },
+          { q:'是否曾被告知血壓偏高（≥ 130/85 mmHg）或正在服用降壓藥？', opts:['否','是'], scores:[0,1] },
+          { q:'你的運動習慣？', opts:['每週 3 次以上有氧運動','偶爾運動','幾乎不運動'], scores:[0,1,2] },
+          { q:'是否曾被告知血糖偏高（空腹 ≥ 100 mg/dL）或有妊娠糖尿病史？', opts:['否','是'], scores:[0,2] }
+        ],
+        grade:function(total){
+          if (total <= 3) return { level:'低風險', tone:'green',
+            advice:'您目前糖尿病前期的風險因子較少。建議維持低糖、低精緻澱粉的飲食與規律運動，並定期健康檢查。' };
+          if (total <= 7) return { level:'中風險', tone:'amber',
+            advice:'您有部分風險因子。建議告知醫師，考慮檢查空腹血糖或糖化血色素（HbA1c），並積極改善生活習慣。' };
+          return { level:'高風險', tone:'red',
+            advice:'您的風險因子較多，建議主動告知醫師並安排血糖檢查。糖尿病前期若能及早介入，有機會延緩甚至逆轉進展為糖尿病。' };
+        }
+      }
+    ];
+  }
+
+  /* ======================================================
+     自我評估模組：介面產生與互動
+     ====================================================== */
+  function esc(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function buildAssessments(){
+    ASSESS.forEach(function(spec){
+      // 分頁按鈕
+      var row = document.getElementById('tabs-' + spec.group);
+      var tab = document.createElement('button');
+      tab.className = 'tab';
+      tab.type = 'button';
+      tab.setAttribute('role', 'tab');
+      tab.id = 'tab-' + spec.id;
+      tab.setAttribute('aria-controls', 'panel-' + spec.id);
+      tab.setAttribute('aria-selected', 'false');
+      tab.tabIndex = -1;
+      tab.dataset.tool = spec.id;
+      tab.innerHTML = esc(spec.tab) + '<span class="tab-en">' + esc(spec.tabEn) + '</span>';
+      row.appendChild(tab);
+
+      // 面板
+      var panel = document.createElement('section');
+      panel.className = 'tool-panel';
+      panel.id = 'panel-' + spec.id;
+      panel.setAttribute('role', 'tabpanel');
+      panel.setAttribute('aria-labelledby', 'tab-' + spec.id);
+      panel.tabIndex = 0;
+      panel.hidden = true;
+      panel.innerHTML =
+        '<div class="panel-head">' +
+          '<div class="panel-title">' + esc(spec.title) + '<small>' + esc(spec.sub) + '</small></div>' +
+          '<div class="panel-actions">' +
+            '<button class="act" type="button" data-reset="' + spec.id + '">重設</button>' +
+            '<button class="act" type="button" data-copy="' + spec.id + '" disabled>複製結果</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="quiz-intro">' + esc(spec.intro) + '</div>' +
+        '<div id="' + spec.id + '-body"></div>' +
+        '<div class="assess-result" id="' + spec.id + '-result" aria-live="polite"></div>';
+      document.querySelector('main.body').appendChild(panel);
+
+      RESETTERS[spec.id] = function(){ startModule(spec); };
+      startModule(spec);
+    });
+  }
+
+  function startModule(spec){
+    var res = $(spec.id + '-result');
+    if (res) res.innerHTML = '';
+    show(spec.id, false);
+    var body = $(spec.id + '-body');
+    body.hidden = false;
+    if (spec.kind === 'quiz')   { QSTATE[spec.id] = { idx:0, scores:[], picked:[] }; renderQuiz(spec); }
+    if (spec.kind === 'check')  { QSTATE[spec.id] = { chosen:[] }; renderCheck(spec); }
+    if (spec.kind === 'picker') { QSTATE[spec.id] = {}; renderPicker(spec); }
+    if (spec.kind === 'waist')  { renderWaist(spec); }
+  }
+
+  function resultCard(spec, scoreHtml, level, tone, advice, extra){
+    var t = TONE[tone];
+    return '<div class="result-card" style="background:' + t.bg + ';border-color:' + t.color + ';">' +
+      '<div class="score-label">' + esc(spec.scoreLabel || '評估結果') + '</div>' +
+      '<div class="result-score" style="color:' + t.color + '">' + scoreHtml + '</div>' +
+      '<div style="margin-top:10px;"><span class="badge" style="background:#fff;color:' + t.color +
+        ';border:1.5px solid ' + t.color + '">' + esc(level) + '</span></div>' +
+      '<div class="result-advice">' + advice + '</div>' +
+      (extra || '') +
+      '<div class="notes" style="margin-top:14px;">' + esc(spec.note) + '</div>' +
+      '</div>';
+  }
+
+  /* ---------- 題目式 ---------- */
+  function renderQuiz(spec){
+    var st = QSTATE[spec.id];
+    var q = spec.qs[st.idx];
+    var last = st.idx === spec.qs.length - 1;
+    var body = $(spec.id + '-body');
+    body.innerHTML =
+      '<div class="progress-track"><div class="progress-fill" style="width:' +
+        (st.idx / spec.qs.length * 100) + '%"></div></div>' +
+      '<div class="quiz-step">問題 ' + (st.idx + 1) + ' / ' + spec.qs.length + '</div>' +
+      (q.tag ? '<div class="quiz-tag ' + (q.tagCls || '') + '">' + esc(q.tag) + '</div>' : '') +
+      '<div class="quiz-q">' + esc(q.q) + '</div>' +
+      '<div class="opt-list">' + q.opts.map(function(o, i){
+        return '<button type="button" class="opt" data-i="' + i + '" aria-pressed="' +
+               (st.picked[st.idx] === i ? 'true' : 'false') + '">' + esc(o) + '</button>';
+      }).join('') + '</div>' +
+      '<div class="quiz-nav">' +
+        (st.idx > 0 ? '<button type="button" class="btn-ghost" data-prev>上一題</button>' : '') +
+        '<button type="button" class="btn-main" data-next' +
+          (st.picked[st.idx] === undefined ? ' disabled' : '') + '>' +
+          (last ? '查看評估結果' : '下一題') + '</button>' +
+      '</div>';
+
+    body.querySelectorAll('.opt').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var i = parseInt(btn.dataset.i, 10);
+        body.querySelectorAll('.opt').forEach(function(b){ b.setAttribute('aria-pressed', 'false'); });
+        btn.setAttribute('aria-pressed', 'true');
+        st.picked[st.idx] = i;
+        st.scores[st.idx] = spec.qs[st.idx].scores[i];
+        body.querySelector('[data-next]').disabled = false;
+      });
+    });
+    var prev = body.querySelector('[data-prev]');
+    if (prev) prev.addEventListener('click', function(){ st.idx--; renderQuiz(spec); });
+    body.querySelector('[data-next]').addEventListener('click', function(){
+      if (st.picked[st.idx] === undefined) return;
+      if (st.idx < spec.qs.length - 1) { st.idx++; renderQuiz(spec); return; }
+      finishQuiz(spec);
+    });
+  }
+
+  function finishQuiz(spec){
+    var st = QSTATE[spec.id];
+    var total = st.scores.reduce(function(a, b){ return a + b; }, 0);
+    var g = spec.grade(total, st.scores);
+    $(spec.id + '-result').innerHTML = resultCard(
+      spec,
+      total + ' <span class="of">/ ' + spec.max + '</span>',
+      g.level, g.tone, esc(g.advice), g.extra
+    );
+    $(spec.id + '-body').hidden = true;
+    show(spec.id, true);
+    COPY[spec.id] = spec.title + '：' + total + ' / ' + spec.max + '（' + g.level + '）';
+  }
+
+  /* ---------- 勾選式 ---------- */
+  function renderCheck(spec){
+    var st = QSTATE[spec.id];
+    var body = $(spec.id + '-body');
+    body.innerHTML =
+      '<div class="check-list">' + spec.items.map(function(it, i){
+        return '<button type="button" class="check-item" data-i="' + i + '" aria-pressed="false">' +
+          '<span class="check-box"><span>✓</span></span>' +
+          '<span class="check-body">' +
+            '<span class="check-tag">' + esc(it.tag) + '</span>' +
+            '<span class="check-label">' + esc(it.label) + '</span>' +
+            '<span class="check-desc">' + esc(it.desc) + '</span>' +
+          '</span></button>';
+      }).join('') + '</div>' +
+      '<div class="quiz-nav"><button type="button" class="btn-main" data-submit' +
+        (spec.requireOne ? ' disabled' : '') + '>' + esc(spec.submitText) + '</button></div>';
+
+    var submit = body.querySelector('[data-submit]');
+    body.querySelectorAll('.check-item').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var i = parseInt(btn.dataset.i, 10);
+        var at = st.chosen.indexOf(i);
+        if (at >= 0) st.chosen.splice(at, 1); else st.chosen.push(i);
+        btn.setAttribute('aria-pressed', at >= 0 ? 'false' : 'true');
+        if (spec.requireOne) submit.disabled = st.chosen.length === 0;
+      });
+    });
+    submit.addEventListener('click', function(){
+      if (spec.requireOne && st.chosen.length === 0) return;
+      if (spec.id === 'scope') finishScope(spec); else finishMetsyn(spec);
+    });
+  }
+
+  function finishScope(spec){
+    var st = QSTATE[spec.id];
+    var picked = st.chosen.slice().sort(function(a, b){ return a - b; }).map(function(i){ return spec.items[i]; });
+    $(spec.id + '-result').innerHTML =
+      '<div class="result-card" style="background:' + TONE.green.bg + ';border-color:' + TONE.green.color + ';">' +
+        '<div class="score-label">針對您勾選的 ' + picked.length + ' 個關卡</div>' +
+        '<div style="margin-top:12px;">' + picked.map(function(g){
+          return '<div class="solution-card">' +
+            '<div class="solution-gate">' + esc(g.tag) + '</div>' +
+            '<div class="solution-title">' + esc(g.label) + '</div>' +
+            '<div class="solution-body">' + esc(g.solution) + '</div></div>';
+        }).join('') + '</div>' +
+        '<div class="notes" style="margin-top:8px;">' + esc(spec.note) + '</div>' +
+      '</div>';
+    $(spec.id + '-body').hidden = true;
+    show(spec.id, true);
+    COPY[spec.id] = '內視鏡檢查關卡：' + picked.map(function(g){ return g.tag + ' ' + g.label; }).join('、');
+  }
+
+  function finishMetsyn(spec){
+    var st = QSTATE[spec.id];
+    var count = st.chosen.length;
+    var names = st.chosen.slice().sort(function(a, b){ return a - b; })
+      .map(function(i){ return spec.items[i].label; }).join('、');
+    var level, tone, advice, extra;
+
+    if (count === 0) {
+      level = '各項指標均正常'; tone = 'green';
+      advice = '目前五項代謝指標皆未超標，請繼續維持健康生活習慣，並定期接受健康檢查。';
+      extra = '<div class="info-box tone-green"><div class="info-title">代謝症候群說明</div>' +
+        '<div class="info-body">代謝症候群是指五大代謝指標中有三項以上異常。您目前各項均正常，請繼續保持良好的飲食習慣、規律運動與充足睡眠，每年定期健檢持續追蹤。</div></div>';
+    } else if (count === 1) {
+      level = '1 項指標異常'; tone = 'amber';
+      advice = '您有 1 項指標偏高（' + names + '），尚未達到代謝症候群標準，但已是警訊。建議積極調整飲食與運動習慣，並於下次健檢時追蹤相關數值。';
+      extra = metsynInfo(false);
+    } else if (count === 2) {
+      level = '2 項指標異常'; tone = 'amber';
+      advice = '您有 2 項指標異常（' + names + '），距代謝症候群僅一步之遙。建議告知醫師，進行完整血液及身體評估，並展開生活型態改善計畫。';
+      extra = metsynInfo(false);
+    } else {
+      level = '符合代謝症候群'; tone = 'red';
+      advice = '您符合代謝症候群的判定標準（' + count + ' 項指標異常：' + names + '）。請告知醫師，進行進一步檢查與風險評估，並討論是否需要藥物介入。';
+      extra = metsynInfo(true);
+    }
+    if (count >= 1) {
+      extra += '<div class="info-box tone-teal"><div class="info-title">改善建議</div><div class="info-body">' +
+        '<strong>飲食：</strong>減少精緻澱粉與含糖飲料，增加蔬菜、全穀、魚類與堅果<br>' +
+        '<strong>運動：</strong>每週至少 150 分鐘中強度有氧運動（快走、游泳、騎車）<br>' +
+        '<strong>體重：</strong>體重減少 5–10% 可顯著改善多項代謝指標<br>' +
+        '<strong>戒菸限酒：</strong>吸菸與過量飲酒會加重代謝異常<br>' +
+        '<strong>定期追蹤：</strong>每年抽血檢查血糖、血脂並量測腰圍</div></div>';
+    }
+
+    $(spec.id + '-result').innerHTML = resultCard(
+      spec, count + ' <span class="of">/ 5 項</span>', level, tone, esc(advice), extra
+    );
+    $(spec.id + '-body').hidden = true;
+    show(spec.id, true);
+    COPY[spec.id] = '代謝症候群評估：' + count + ' / 5 項異常（' + level + '）' + (names ? '｜' + names : '');
+  }
+
+  function metsynInfo(hasMets){
+    if (hasMets) {
+      return '<div class="info-box tone-red"><div class="info-title">代謝症候群的健康風險</div><div class="info-body">' +
+        '代謝症候群不是單一疾病，而是多種代謝異常同時存在，會提高以下風險：<br>' +
+        '<strong>心血管疾病</strong>（冠心病、心肌梗塞）風險約提高 <strong>2–3 倍</strong><br>' +
+        '<strong>腦中風</strong>風險約提高 <strong>2 倍</strong><br>' +
+        '<strong>第 2 型糖尿病</strong>風險約提高 <strong>5 倍</strong><br>' +
+        '<strong>非酒精性脂肪肝</strong>與<strong>慢性腎病</strong>的風險也會上升<br><br>' +
+        '研究顯示，生活型態介入（飲食控制加上每週 150 分鐘中度有氧運動）可有效改善代謝症候群。</div></div>';
+    }
+    return '<div class="info-box tone-amber"><div class="info-title">關於代謝症候群</div><div class="info-body">' +
+      '代謝症候群是指腹部肥胖、血壓、血糖、三酸甘油酯、HDL 膽固醇五項指標中，有三項以上異常的狀態，是心血管疾病與糖尿病的重要前驅訊號。您目前尚未達標，但已出現部分警訊，積極介入可有效預防。</div></div>';
+  }
+
+  /* ---------- 顏色挑選 ---------- */
+  function renderPicker(spec){
+    var body = $(spec.id + '-body');
+    body.innerHTML = '<div class="swatch-list">' + spec.items.map(function(it, i){
+      return '<button type="button" class="swatch-item" data-i="' + i + '" aria-pressed="false">' +
+        '<span class="swatch-dot" style="background:' + it.color + '"></span>' +
+        '<span class="swatch-name">' + esc(it.label) + '</span></button>';
+    }).join('') + '</div>';
+
+    body.querySelectorAll('.swatch-item').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var it = spec.items[parseInt(btn.dataset.i, 10)];
+        body.querySelectorAll('.swatch-item').forEach(function(b){ b.setAttribute('aria-pressed', 'false'); });
+        btn.setAttribute('aria-pressed', 'true');
+        var t = TONE[it.tone];
+        $(spec.id + '-result').innerHTML =
+          '<div class="result-card" style="background:' + t.bg + ';border-color:' + t.color + ';">' +
+            '<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">' +
+              '<span class="swatch-dot" style="width:54px;height:54px;background:' + it.color + '"></span>' +
+              '<div><div class="score-label">你選擇的顏色</div>' +
+              '<div style="font-size:21px;font-weight:700;color:' + t.color + '">' + esc(it.label) + '</div>' +
+              '<span class="badge" style="margin-top:6px;background:#fff;color:' + t.color +
+                ';border:1.5px solid ' + t.color + '">' + esc(it.status) + '</span></div>' +
+            '</div>' +
+            '<div class="result-advice">' + esc(it.detail) + '</div>' +
+            '<div class="notes" style="margin-top:14px;">' + esc(spec.note) + '</div>' +
+          '</div>';
+        show(spec.id, true);
+        COPY[spec.id] = '糞便顏色：' + it.label + '（' + it.status + '）';
+      });
+    });
+  }
+
+  /* ---------- 腰圍 ---------- */
+  function renderWaist(spec){
+    var body = $(spec.id + '-body');
+    body.innerHTML =
+      '<div class="grid-2">' +
+        '<div class="field">' +
+          '<div class="field-head"><label for="waist-sex">生理性別</label></div>' +
+          '<select id="waist-sex"><option value="">未選擇</option>' +
+          '<option value="male">男性</option><option value="female">女性</option></select>' +
+        '</div>' +
+        '<div class="field">' +
+          '<div class="field-head"><label for="waist-val">腰圍</label><span class="field-unit">cm</span></div>' +
+          '<input type="number" id="waist-val" min="40" max="200" step="0.1" inputmode="decimal" autocomplete="off">' +
+          '<p class="field-err" hidden></p>' +
+        '</div>' +
+      '</div>';
+
+    var calc = function(){
+      var sex = $('waist-sex').value;
+      var val = num('waist-val');
+      if (!sex || !isNum(val)) { show(spec.id, false); return; }
+      var limit = sex === 'male' ? 90 : 80;
+      var over = val >= limit;
+      var tone = over ? 'red' : 'green';
+      var advice = over
+        ? '您的腰圍超過台灣國民健康署的建議標準（男性 &lt; 90 cm，女性 &lt; 80 cm），屬於代謝症候群的腰圍指標異常。建議搭配血壓、血糖、血脂共同評估，並積極調整飲食與增加有氧運動。'
+        : '您的腰圍在正常範圍內（男性 &lt; 90 cm，女性 &lt; 80 cm），代謝症候群的腰圍指標目前正常。請持續維持均衡飲食與規律運動。';
+      $(spec.id + '-result').innerHTML = resultCard(
+        spec, val + ' <span class="of">cm</span>',
+        over ? '超標' : '正常範圍', tone, advice
+      );
+      show(spec.id, true);
+      COPY[spec.id] = '腰圍 ' + val + ' cm（' + (over ? '超標' : '正常範圍') +
+                      '，' + (sex === 'male' ? '男性標準 < 90' : '女性標準 < 80') + ' cm）';
+    };
+    $('waist-sex').addEventListener('change', calc);
+    $('waist-val').addEventListener('input', calc);
+  }
 
   /* ======================================================
      Init
