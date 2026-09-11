@@ -39,27 +39,36 @@
   <!-- ===================== TABS ===================== -->
   <div class="tabs-wrap">
     <div class="group-bar" role="tablist" aria-label="選擇工具分類" id="grouplist">
-      <button class="group-btn" role="tab" id="group-gi" aria-selected="true" data-group="gi">
+      <button class="group-btn" role="tab" id="group-basic" aria-selected="true" data-group="basic">
+        基本測量<span class="group-count">3</span>
+      </button>
+      <button class="group-btn" role="tab" id="group-gi" aria-selected="false" tabindex="-1" data-group="gi">
         腸胃與消化<span class="group-count">6</span>
       </button>
       <button class="group-btn" role="tab" id="group-meta" aria-selected="false" tabindex="-1" data-group="meta">
         代謝與體態<span class="group-count">3</span>
       </button>
       <button class="group-btn" role="tab" id="group-calc" aria-selected="false" tabindex="-1" data-group="calc" hidden>
-        臨床計算<span class="group-count">6</span>
+        臨床判讀<span class="group-count">3</span>
       </button>
       <button class="staff-toggle" type="button" id="staff-toggle" aria-expanded="false">
         醫療人員工具
       </button>
     </div>
 
-    <div class="tabs" role="tablist" aria-label="臨床計算工具" id="tabs-calc" data-group="calc" hidden>
+    <div class="tabs" role="tablist" aria-label="基本測量工具" id="tabs-basic" data-group="basic">
       <button class="tab" role="tab" id="tab-bmi" aria-controls="panel-bmi" aria-selected="true" data-tool="bmi">
         BMI<span class="tab-en">身體質量指數</span>
       </button>
       <button class="tab" role="tab" id="tab-tdee" aria-controls="panel-tdee" aria-selected="false" tabindex="-1" data-tool="tdee">
         BMR / TDEE<span class="tab-en">熱量需求</span>
       </button>
+      <button class="tab" role="tab" id="tab-bristol" aria-controls="panel-bristol" aria-selected="false" tabindex="-1" data-tool="bristol">
+        Bristol<span class="tab-en">糞便型態</span>
+      </button>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="臨床判讀工具" id="tabs-calc" data-group="calc" hidden>
       <button class="tab" role="tab" id="tab-fib4" aria-controls="panel-fib4" aria-selected="false" tabindex="-1" data-tool="fib4">
         FIB-4<span class="tab-en">肝纖維化</span>
       </button>
@@ -68,9 +77,6 @@
       </button>
       <button class="tab" role="tab" id="tab-childpugh" aria-controls="panel-childpugh" aria-selected="false" tabindex="-1" data-tool="childpugh">
         Child-Pugh<span class="tab-en">肝硬化分級</span>
-      </button>
-      <button class="tab" role="tab" id="tab-bristol" aria-controls="panel-bristol" aria-selected="false" tabindex="-1" data-tool="bristol">
-        Bristol<span class="tab-en">糞便型態</span>
       </button>
     </div>
 

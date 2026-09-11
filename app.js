@@ -27,9 +27,9 @@
     TOOL_GROUP[t.dataset.tool] = t.closest('.tabs').dataset.group;
   });
 
-  // 預設進病人可用的自我評估；臨床判讀工具需另外展開，
-  // 避免病人誤入後看到 Child-Pugh 存活率等需要醫師解釋的數字
-  var DEFAULT_GROUP = 'gi';
+  // 預設停在基本測量的第一項（BMI）。FIB-4、R Factor、Child-Pugh 這類
+  // 需要醫師解釋的判讀工具另外收在「臨床判讀」，避免病人誤讀存活率等數字
+  var DEFAULT_GROUP = 'basic';
   var staffUnlocked = false;
 
   function unlockStaff(){
