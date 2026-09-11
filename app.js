@@ -106,10 +106,8 @@
       p.hidden = !on;
     });
     switchGroup(TOOL_GROUP[tool] || DEFAULT_GROUP);
-    if (opts.updateHash !== false && location.hash.slice(1) !== tool) {
-      // 本機以 file:// 開啟時部分瀏覽器會擋下 replaceState
-      try { history.replaceState(null, '', '#' + tool); } catch (e) { location.hash = tool; }
-    }
+    // 切換工具時「不」把工具名稱寫進網址。若寫進去，瀏覽器會記住帶錨點的網址，
+    // 下次開啟就會停在上次那一項，而不是預設的 BMI。
   }
 
   tabs.forEach(function(t){
@@ -127,9 +125,19 @@
     });
   });
 
-  window.addEventListener('hashchange', function(){
-    switchTool(location.hash.slice(1), { updateHash:false });
-  });
+  // 網址錨點一律忽略。舊版會把工具名稱寫進錨點，瀏覽器記住後就會停在上次那一項；
+  // 要直接指定工具請改用 ?tool=fib4 這種查詢參數。
+  window.addEventListener('hashchange', stripHash);
+
+  function stripHash(){
+    if (!location.hash) return;
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* 忽略 */ }
+  }
+
+  function toolFromQuery(){
+    var m = /[?&]tool=([A-Za-z0-9_-]+)/.exec(location.search);
+    return m ? m[1] : '';
+  }
 
   /* ======================================================
      Field helpers
@@ -1368,7 +1376,9 @@
   /* ======================================================
      Init
      ====================================================== */
-  switchTool(location.hash.slice(1) || firstToolOf(DEFAULT_GROUP), { updateHash:false, scrollTab:false });
+  // 一律停在 BMI，除非網址明確指定 ?tool=xxx（醫師自己加的書籤才會有）
+  switchTool(toolFromQuery() || firstToolOf(DEFAULT_GROUP), { scrollTab:false });
+  stripHash();
   restoreState();
   ready = true;
   renderSummary();
