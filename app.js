@@ -51,6 +51,10 @@
       row.hidden = row.dataset.group !== group;
     });
     $('staff-notice').hidden = group !== 'calc';
+    // 「已完成的評估」彙整與列印只給自我評估用（病人要帶去門診的那種），
+    // 臨床計算與臨床判讀工具是當場看、當場用，不需要這個功能
+    var isAssessGroup = group === 'gi' || group === 'meta';
+    $('summary-zone').hidden = !isAssessGroup;
   }
 
   function firstToolOf(group){
@@ -653,8 +657,10 @@
   function rxBadge(st, label){
     return '<span class="rx-status st-' + st + '">' + esc(label || RX_LABEL[st] || '') + '</span>';
   }
+  var RX_ACCENT = { yes:'var(--green)', no:'var(--red)', wait:'var(--amber)', part:'var(--amber)', na:'var(--line)' };
   function rxCard(st, title, bodyHtml, why, lead){
-    return '<div class="rx-card' + (lead ? ' lead' : '') + '">' +
+    var accent = lead ? 'var(--teal)' : (RX_ACCENT[st] || 'var(--line)');
+    return '<div class="rx-card' + (lead ? ' lead' : '') + '" style="border-left-color:' + accent + '">' +
       '<div class="rx-card-head"><h4>' + esc(title) + '</h4>' + (st ? rxBadge(st) : '') + '</div>' +
       '<p>' + bodyHtml + '</p>' +
       (why ? '<div class="rx-why">' + esc(why) + '</div>' : '') +
@@ -1603,7 +1609,10 @@
   }
 
   function completedTools(){
-    return (TOOLS || []).filter(function(t){ return COPY[t]; });
+    // 彙整摘要只收自我評估（腸胃與消化、代謝與體態），臨床計算與臨床判讀工具不列入
+    return (TOOLS || []).filter(function(t){
+      return COPY[t] && (TOOL_GROUP[t] === 'gi' || TOOL_GROUP[t] === 'meta');
+    });
   }
 
   function today(){
