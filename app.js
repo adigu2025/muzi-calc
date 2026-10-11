@@ -85,6 +85,20 @@
     switchTool(firstToolOf('calc'));
     $('group-calc').focus();
   });
+
+  /* ======================================================
+     QR code 放大
+     ====================================================== */
+  (function(){
+    var overlay = $('qr-overlay'), openBtn = $('qr-open'), closeBtn = $('qr-close');
+    if (!overlay || !openBtn || !closeBtn) return;
+    function openQr(){ overlay.hidden = false; closeBtn.focus(); }
+    function closeQr(){ overlay.hidden = true; openBtn.focus(); }
+    openBtn.addEventListener('click', openQr);
+    closeBtn.addEventListener('click', closeQr);
+    overlay.addEventListener('click', function(e){ if (e.target === overlay) closeQr(); });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !overlay.hidden) closeQr(); });
+  })();
   var TOOLS = tabs.map(function(t){ return t.dataset.tool; });
 
   function switchTool(tool, opts){
@@ -629,6 +643,351 @@
   }
 
   bind(CP_FIELDS.map(function(f){ return f.id; }), calcCP);
+
+  /* ======================================================
+     用藥給付判定：共用小工具
+     ====================================================== */
+  function ck(id){ var e = $(id); return !!(e && e.checked); }
+  function rxFmt(n){ return isNum(n) ? (Math.round(n * 100) / 100).toLocaleString('en-US') : '－'; }
+  var RX_LABEL = { yes:'符合', no:'未符合', wait:'需先生活型態調整', na:'資料不足', part:'部分品項' };
+  function rxBadge(st, label){
+    return '<span class="rx-status st-' + st + '">' + esc(label || RX_LABEL[st] || '') + '</span>';
+  }
+  function rxCard(st, title, bodyHtml, why, lead){
+    return '<div class="rx-card' + (lead ? ' lead' : '') + '">' +
+      '<div class="rx-card-head"><h4>' + esc(title) + '</h4>' + (st ? rxBadge(st) : '') + '</div>' +
+      '<p>' + bodyHtml + '</p>' +
+      (why ? '<div class="rx-why">' + esc(why) + '</div>' : '') +
+      '</div>';
+  }
+  function rxRule(st, title, detail){
+    return '<div class="rx-rule">' + rxBadge(st, st === 'part' ? '受限' : undefined) +
+      '<div class="rx-rule-body"><b>' + esc(title) + '</b><div class="rx-why">' + esc(detail) + '</div></div></div>';
+  }
+  function rxDrugChips(list, on){
+    return '<div class="drugs">' + list.map(function(d){
+      return '<span class="drug ' + (on ? 'ok' : 'off') + '">' + esc(d[0]) + '<small>' + esc(d[1]) + '</small></span>';
+    }).join('') + '</div>';
+  }
+
+  /* ======================================================
+     降血脂／TG 用藥給付
+     ====================================================== */
+  var LX_NEW = [['Lipitor','10、20、40 mg'],['Crestor','10 mg'],['Tulip "SDZ"','10、20、40 mg'],['Vytorin','10/20 mg 複方'],['Atozet','10/10、10/20 mg 複方'],['Tonvasca','2/10 mg 複方']];
+  var LX_OLD = [['Crestor','5、20 mg'],['Tulip','10、20、40 mg'],['Livalo','2 mg、OD 2 mg'],['Mevalotin protect','20、40 mg'],['Lescol XL','80 mg'],['Caduet','5/10、5/20 mg'],['Zyrova','5、10、20 mg']];
+  var LX_FLAGS = ['lx-acs','lx-mi1y','lx-mi2','lx-mvd','lx-revasc','lx-cadPlaque','lx-carotid','lx-padPlaque','lx-padSym','lx-stroke',
+    'lx-dm','lx-ckd','lx-cac','lx-htn','lx-smoke','lx-fhx','lx-meno','lx-bpHigh','lx-fgHigh','lx-tgMed','lx-life3','lx-intol','lx-event1y','lx-pcskPre'];
+
+  function lipidrxShow(ok){
+    var btn = document.querySelector('[data-copy="lipidrx"]');
+    if (btn) { btn.disabled = !ok; btn.classList.remove('done'); btn.textContent = '複製結果'; }
+    if (!ok) COPY.lipidrx = '';
+    renderSummary();
+    saveState();
+  }
+
+  function calcLipidRx(){
+    var s = $('lx-sex').value, age = num('lx-age');
+    var ldl = num('lx-ldl'), tc = num('lx-tc'), hdl = num('lx-hdl'), tg = num('lx-tg'), waist = num('lx-waist');
+    var h = {};
+    LX_FLAGS.forEach(function(id){ h[id.slice(3)] = ck(id); });
+    var statin = $('lx-statin').value;
+
+    var nonhdl = (isNum(tc) && isNum(hdl)) ? tc - hdl : NaN;
+    var ratio = (isNum(tc) && isNum(hdl) && hdl > 0) ? tc / hdl : NaN;
+    $('lx-calcLine').textContent = 'non-HDL-C：' + rxFmt(nonhdl) + '　TC/HDL-C：' + rxFmt(ratio);
+
+    var ageRF = isNum(age) && s && (s === 'M' ? age >= 45 : age >= 55);
+    var hdlLow = isNum(hdl) && s && (s === 'M' ? hdl < 40 : hdl < 50);
+    var metsItems = [isNum(waist) && s && (s === 'M' ? waist >= 90 : waist >= 80), h.bpHigh || h.htn, h.fgHigh || h.dm, (isNum(tg) && tg >= 150) || h.tgMed, hdlLow];
+    var metsN = metsItems.filter(Boolean).length, mets = metsN >= 3;
+    var rf = [['高血壓', h.htn], ['年齡', ageRF], ['家族史', h.fhx], ['HDL-C 偏低', hdlLow], ['抽菸', h.smoke], ['代謝症候群（' + metsN + '/5）', mets]];
+    var rfN = rf.filter(function(r){ return r[1]; }).length;
+    $('lx-rfChips').innerHTML = '<span class="rx-hint" style="margin:0">表一計入：</span>' +
+      rf.map(function(r){ return '<span class="chip' + (r[1] ? ' on' : '') + '">' + esc(r[0]) + '</span>'; }).join('') +
+      '<span class="chip-count">共 ' + rfN + ' 項</span>';
+
+    var cad = h.acs || h.mi1y || h.mi2 || h.mvd || h.revasc || h.cadPlaque;
+    var pad = h.padPlaque || h.padSym;
+    var why = [], lv;
+    if (cad && (h.mi1y || h.mi2 || h.mvd || (h.acs && h.dm) || pad || h.carotid)) {
+      lv = 'xh';
+      why.push('冠狀動脈疾病合併：' + [h.mi1y && '一年內 MI', h.mi2 && '≥2 次 MI', h.mvd && '多支阻塞', (h.acs && h.dm) && 'ACS 合併糖尿病', pad && '周邊動脈疾病', h.carotid && '頸動脈狹窄'].filter(Boolean).join('、'));
+    } else if (pad && (cad || h.carotid)) {
+      lv = 'xh'; why.push('周邊動脈疾病合併' + (cad ? '冠狀動脈疾病' : '頸動脈狹窄'));
+    } else if (h.acs || h.mi1y || h.mi2 || h.revasc || h.stroke || h.padSym || h.cadPlaque || h.carotid || h.padPlaque || h.mvd) {
+      lv = 'vh';
+      why.push([(h.acs || h.mi1y || h.mi2) && 'ACS 病史', h.revasc && '血管再通術', h.stroke && '缺血性中風／TIA', h.padSym && '周邊動脈疾病', (h.cadPlaque || h.carotid || h.padPlaque || h.mvd) && '影像 ≥50% 狹窄'].filter(Boolean).join('、'));
+    } else if (h.dm || h.ckd || (isNum(ldl) && ldl >= 190) || h.cac) {
+      lv = 'h';
+      why.push([h.dm && '糖尿病', h.ckd && '慢性腎臟病', (isNum(ldl) && ldl >= 190) && 'LDL-C ≥190', h.cac && 'CAC ≥400'].filter(Boolean).join('、'));
+    } else if (rfN >= 2) { lv = 'm'; why.push('心血管風險因子 ' + rfN + ' 項'); }
+    else if (rfN === 1) { lv = 'l'; why.push('心血管風險因子 1 項'); }
+    else { lv = 'z'; why.push('無心血管風險因子'); }
+    var LV = {
+      xh: ['極高風險', 55, '< 55（non-HDL-C < 85）', false], vh: ['非常高風險', 70, '< 70（non-HDL-C < 100）', false],
+      h: ['高風險', 100, '< 100（non-HDL-C < 130）', false], m: ['中風險', 115, '< 115（non-HDL-C < 145）', true],
+      l: ['低風險', 130, '< 130（non-HDL-C < 160）', true], z: ['0 項心血管風險因子', 160, '< 160', true]
+    };
+    var lvInfo = LV[lv], lvName = lvInfo[0], start = lvInfo[1], goal = lvInfo[2], needLS = lvInfo[3];
+
+    var t1, t1txt;
+    if (!isNum(ldl)) { t1 = 'na'; t1txt = '請輸入 LDL-C。'; }
+    else if (ldl < start) { t1 = 'no'; t1txt = 'LDL-C ' + rxFmt(ldl) + '，未達起始值 ≥ ' + start + '。'; }
+    else if (needLS && !h.life3) { t1 = 'wait'; t1txt = '先生活型態調整 3–6 個月並處置風險因子；屆時 LDL-C 仍 ≥ ' + start + '，給予中強度 statin。'; }
+    else { t1 = 'yes'; t1txt = needLS ? ('LDL-C ' + rxFmt(ldl) + ' ≥ ' + start + '，可給予中強度 statin。') : ('LDL-C ' + rxFmt(ldl) + ' ≥ ' + start + '，可給予中至高強度 statin。'); }
+    var fu1 = needLS ? '生活型態調整 3–6 個月後驗血脂；中強度 statin 6–8 週後追蹤；達標後每 6–12 個月追蹤。' : '起始治療 6–8 週驗血脂；達標後每 6 個月追蹤；調整用藥後 1–3 個月內再驗。';
+
+    var oCAD = h.acs || h.mi1y || h.mi2 || h.revasc;
+    var oCVD = h.cadPlaque || h.mvd || h.stroke || h.carotid;
+    var oAge = isNum(age) && s && (s === 'M' ? age >= 45 : (age >= 55 || h.meno));
+    var oRF = [h.htn, oAge, h.fhx, isNum(hdl) && hdl < 40, h.smoke].filter(Boolean).length;
+    var row;
+    if (oCAD) row = { n:'ACS 病史或曾 PCI／CABG', ldl:70, tc:null, ls:false, goal:'LDL-C < 70' };
+    else if (oCVD || h.dm) row = { n:'心血管疾病或糖尿病', ldl:100, tc:160, ls:false, goal:'TC < 160 或 LDL-C < 100' };
+    else if (oRF >= 2) row = { n:'危險因子 ' + oRF + ' 項', ldl:130, tc:200, ls:true, goal:'TC < 200 或 LDL-C < 130' };
+    else if (oRF === 1) row = { n:'危險因子 1 項', ldl:160, tc:240, ls:true, goal:'TC < 240 或 LDL-C < 160' };
+    else row = { n:'危險因子 0 項', ldl:190, tc:null, ls:true, goal:'LDL-C < 190' };
+    var t2, t2txt;
+    var hitL = isNum(ldl) && ldl >= row.ldl, hitT = row.tc !== null && isNum(tc) && tc >= row.tc;
+    var t2cond = row.tc !== null ? ('TC ≥ ' + row.tc + ' 或 LDL-C ≥ ' + row.ldl) : ('LDL-C ≥ ' + row.ldl);
+    if (!isNum(ldl) && !isNum(tc)) { t2 = 'na'; t2txt = '請輸入 LDL-C 或 TC。'; }
+    else if (!(hitL || hitT)) { t2 = 'no'; t2txt = '未達起始值（' + t2cond + '）。'; }
+    else if (row.ls && !h.life3) { t2 = 'wait'; t2txt = '符合數值（' + t2cond + '），但給藥前需 3–6 個月非藥物治療。'; }
+    else { t2 = 'yes'; t2txt = '符合（' + t2cond + '）' + (hitT && !hitL ? '，以 TC 達標' : '') + '。'; }
+
+    var ok1 = t1 === 'yes', ok2 = t2 === 'yes';
+    var brandNote;
+    if (ok1 && ok2) brandNote = '表一、表二品項皆可給付。';
+    else if (ok1) brandNote = '只能開<b>表一（新制）</b>品項；表二列表品項不符合。';
+    else if (ok2) brandNote = '只能開<b>表二（舊制）</b>品項（以 TC 或舊分級達標）。';
+    else brandNote = '目前兩表皆未符合。';
+
+    var curGoal = start, notAtGoal = isNum(ldl) && ldl >= curGoal;
+    var eze, ezeTxt;
+    if (h.intol) { eze = 'yes'; ezeTxt = 'statin 無法耐受：可用 ezetimibe（限原發性高膽固醇血症、HoFH、植物脂醇血症）。'; }
+    else if (statin === 'none') { eze = 'no'; ezeTxt = '需 statin 單一治療 6–8 週未達標，才可合併 ezetimibe 或使用 ezetimibe／statin 複方。'; }
+    else if (!notAtGoal) { eze = 'no'; ezeTxt = isNum(ldl) ? ('LDL-C 已達目標（' + goal + '），不需加藥。') : '請輸入目前 LDL-C。'; }
+    else if (statin === '6w') { eze = 'part'; ezeTxt = 'statin 6–8 週未達標：一般 ezetimibe 單方及複方（如 Ezetrol、Vytorin、Atozet、Tonvasca）可用；Ezetity、Ezzicad、Ezta 10、Ezetimibe Sandoz 及 Cretrol、Agitin、Sacure、Ezta-SM、Zoliton、Zovastin、Livazebe HD 仍需滿 3 個月。'; }
+    else { eze = 'yes'; ezeTxt = 'statin ≥3 個月未達標：ezetimibe 單方與複方皆可合併。'; }
+
+    var pc, pcTxt;
+    if (!h.event1y) { pc = 'na'; pcTxt = '限一年內重大心血管事件（MI、血管再通術、動脈硬化缺血性中風）。'; }
+    else if (!h.pcskPre) { pc = 'no'; pcTxt = '需先高強度（如 rosuvastatin 20 mg、atorvastatin 40 mg 以上）或最大耐受 statin ≥3 個月，再合併 ezetimibe 10 mg ≥3 個月。'; }
+    else if (!isNum(ldl)) { pc = 'na'; pcTxt = '請輸入 LDL-C。'; }
+    else if (ldl > 100) { pc = 'yes'; pcTxt = 'LDL-C ' + rxFmt(ldl) + ' > 100：可申請 evolocumab 或 alirocumab，需事前審查，每次核准 12 個月。'; }
+    else { pc = 'no'; pcTxt = 'LDL-C ' + rxFmt(ldl) + ' 未高於 100。'; }
+
+    var cvdTG = oCAD || oCVD;
+    var tgCond = isNum(tg) && tg >= 200 && ((isNum(ratio) && ratio > 5) || (isNum(hdl) && hdl < 40));
+    var tgs, tgTxt, tgGoal = 'TG < 200';
+    if (!isNum(tg)) { tgs = 'na'; tgTxt = '請輸入 TG。'; }
+    else if (cvdTG || h.dm) {
+      if (tgCond) { tgs = 'yes'; tgTxt = '心血管疾病或糖尿病，TG ' + rxFmt(tg) + ' ≥200 且（TC/HDL-C >5 或 HDL-C <40）：可與非藥物治療並行。'; }
+      else if (tg >= 500) { tgs = 'part'; tgTxt = 'TG ≥500，但 TG ≥500 條款列於「無心血管疾病」；有心血管疾病或糖尿病者須符合 TC/HDL-C >5 或 HDL-C <40，申報前請確認。'; }
+      else { tgs = 'no'; tgTxt = tg >= 200 ? 'TG ≥200，但 TC/HDL-C 未 >5 且 HDL-C 未 <40。' : ('TG ' + rxFmt(tg) + ' 未達 200。'); }
+    } else {
+      if (tg >= 500) { tgs = 'yes'; tgTxt = 'TG ' + rxFmt(tg) + ' ≥500：可與非藥物治療並行。'; tgGoal = 'TG < 500'; }
+      else if (tgCond) { tgs = h.life3 ? 'yes' : 'wait'; tgTxt = 'TG ≥200 且（TC/HDL-C >5 或 HDL-C <40）：給藥前需 3–6 個月非藥物治療' + (h.life3 ? '，已完成' : '') + '。'; }
+      else { tgs = 'no'; tgTxt = tg >= 200 ? 'TG ≥200，但 TC/HDL-C 未 >5 且 HDL-C 未 <40。' : ('TG ' + rxFmt(tg) + ' 未達 200。'); }
+    }
+
+    var cards = [];
+    var sexWarn = (!s || !isNum(age)) ? '請先填性別與年齡，年齡與 HDL-C 風險因子才會計入。' : '';
+    cards.push(
+      '<div class="rx-card lead"><div class="rx-card-head"><h4>ASCVD 風險等級（表一）</h4></div>' +
+      '<div class="score" style="font-size:26px;margin:2px 0 4px">' + esc(lvName) + '</div>' +
+      '<div class="rx-why">' + esc(why.join('；')) + (sexWarn ? '<br><span style="color:var(--amber)">' + esc(sexWarn) + '</span>' : '') + '</div>' +
+      '<p style="margin-top:8px;font-size:13px;color:var(--muted)">起始 LDL-C ≥ ' + start + ' mg/dL　｜　目標 LDL-C ' + goal + '　｜　' + (needLS ? '給藥前需 3–6 個月生活型態改變' : '與藥物治療並行') + '</p></div>'
+    );
+    cards.push(rxCard(t1, '表一（新制品項）', t1txt, '追蹤：' + fu1));
+    cards.push(rxCard(t2, '表二（舊制品項）', '分級：' + esc(row.n) + '。' + esc(t2txt),
+      '目標 ' + row.goal + '。第一年每 3–6 個月抽血，第二年起至少每 6–12 個月。' + (h.smoke ? '因吸菸而符合者，未戒菸要求用藥應自費。' : '')));
+    cards.push(
+      '<div class="rx-card"><div class="rx-card-head"><h4>可開立 statin 品項</h4></div><p>' + brandNote + '</p>' +
+      '<p class="rx-why" style="margin-top:8px">表一（新制）</p>' + rxDrugChips(LX_NEW, ok1) +
+      '<p class="rx-why" style="margin-top:8px">表二（舊制）</p>' + rxDrugChips(LX_OLD, ok2) +
+      '<div class="rx-why">' + (ok1 && !needLS ? '強度參考：高強度 atorvastatin 40–80、rosuvastatin 20–40 mg；中強度 atorvastatin 10–20、rosuvastatin 5–10、pitavastatin 2–4 mg。' : '中強度參考：atorvastatin 10–20、rosuvastatin 5–10、pitavastatin 2–4、simvastatin 20–40 mg。') + '</div></div>'
+    );
+    cards.push(rxCard(eze, 'Ezetimibe 與複方', ezeTxt, '複方不得與 gemfibrozil 併用。'));
+    cards.push(rxCard(pc, 'PCSK9 抑制劑', pcTxt));
+    cards.push(rxCard(tgs, '三酸甘油酯藥物', tgTxt,
+      '目標 ' + tgGoal + '。藥物如 fenofibrate、gemfibrozil；gemfibrozil 避免與 statin 併用。第一年每 3–6 個月抽血，注意肝功能與橫紋肌溶解。'));
+
+    $('lipidrx-result').innerHTML = cards.join('');
+
+    var hasResult = !!(s && isNum(age) && isNum(ldl));
+    if (hasResult) {
+      COPY.lipidrx = '降血脂給付判定：' + lvName + '｜LDL-C ' + rxFmt(ldl) + '（目標 ' + goal + '）｜表一 ' + RX_LABEL[t1] + '、表二 ' + RX_LABEL[t2];
+    }
+    lipidrxShow(hasResult);
+  }
+
+  bind(['lx-sex','lx-age','lx-ldl','lx-tc','lx-hdl','lx-tg','lx-waist','lx-statin'].concat(LX_FLAGS), calcLipidRx);
+  calcLipidRx();
+
+  RESETTERS.lipidrx = function(){
+    var panel = $('panel-lipidrx');
+    panel.querySelectorAll('input[type=number]').forEach(function(el){ el.value = ''; el.classList.remove('invalid'); });
+    panel.querySelectorAll('input[type=checkbox]').forEach(function(el){ el.checked = false; });
+    panel.querySelectorAll('select').forEach(function(el){ el.selectedIndex = 0; });
+    panel.querySelectorAll('.field-err').forEach(function(el){ el.textContent = ''; el.hidden = true; });
+    calcLipidRx();
+    var first = panel.querySelector('select, input');
+    if (first) first.focus();
+  };
+
+  /* ======================================================
+     B 型肝炎用藥給付
+     ====================================================== */
+  var HB_RESTRICT = 'Fofnir、Hepwin、Sebivo、Ricovir、Hepuri、Virclean、Teno B、Tenof、Viread、Livepro、Lamidine、Hepar-Pro、Hepato-Ease、Barazer、Becavir';
+
+  function hbvrxShow(ok){
+    var btn = document.querySelector('[data-copy="hbvrx"]');
+    if (btn) { btn.disabled = !ok; btn.classList.remove('done'); btn.textContent = '複製結果'; }
+    if (!ok) COPY.hbvrx = '';
+    renderSummary();
+    saveState();
+  }
+
+  function calcHbvRx(){
+    var age = num('hb-age'), uln = num('hb-uln'), a1 = num('hb-alt1'), a2 = num('hb-alt2'), ast = num('hb-ast'), plt = num('hb-plt'), bil = num('hb-bil'), pt = num('hb-pt');
+    var dnaRaw = num('hb-dna');
+    var und = ck('hb-dnaUnd');
+    var dna = und ? 0 : dnaRaw;
+    var dnaDet = !und && isNum(dnaRaw) && dnaRaw > 0;
+    var bx = Number($('hb-bx').value || 0);
+    var x1 = (isNum(a1) && isNum(uln) && uln > 0) ? a1 / uln : NaN;
+    var x2 = (isNum(a2) && isNum(uln) && uln > 0) ? a2 / uln : NaN;
+    $('hb-altLine').textContent = 'ALT 倍數：最近 ' + (isNum(x1) ? x1.toFixed(2) + ' X' : '－') + '　另一次 ' + (isNum(x2) ? x2.toFixed(2) + ' X' : '－');
+
+    var fs = num('hb-fs'), arfi = num('hb-arfi');
+    var fib4 = (isNum(age) && isNum(ast) && isNum(plt) && isNum(a1) && plt > 0 && a1 > 0) ? (age * ast) / (plt * Math.sqrt(a1)) : NaN;
+    var F4 = bx >= 4 || (isNum(fs) && fs >= 12) || (isNum(arfi) && arfi >= 1.98);
+    var F3 = F4 || bx >= 3 || (isNum(fs) && fs >= 9.5) || (isNum(arfi) && arfi >= 1.81) || (isNum(fib4) && fib4 >= 3.25);
+    var F2 = F3 || bx >= 2 || (isNum(fs) && fs >= 8) || (isNum(arfi) && arfi >= 1.5) || (isNum(fib4) && fib4 >= 2.1);
+    var fLabel = F4 ? '≥F4（肝硬化等級）' : F3 ? '≥F3' : F2 ? '≥F2' : '未達 F2';
+    $('hb-fibLine').textContent = 'FIB-4：' + (isNum(fib4) ? fib4.toFixed(2) : '－（需年齡、AST、ALT、血小板）') + '　判定纖維化 ' + fLabel;
+
+    var hbsag = ck('hb-hbsag'), six = ck('hb-hbsag6'), e = $('hb-eag').value;
+    var items = [];
+    function add(st, title, detail){ items.push({ st:st, title:title, detail:detail }); }
+
+    var decomp = (isNum(bil) && bil >= 2) || (isNum(pt) && pt >= 3);
+    if (hbsag && decomp) add('yes', '代償不全（第 1 項）',
+      [isNum(bil) && bil >= 2 && '總膽紅素 ≥2.0', isNum(pt) && pt >= 3 && 'PT 延長 ≥3 秒'].filter(Boolean).join('、') +
+      '。藥物：lamivudine 100 mg、entecavir 1.0 mg、telbivudine、TDF、TAF。療程：' +
+      (e === 'P' ? '治療至 e 抗原轉陰再 12 個月' : e === 'N' ? '至少 2 年，DNA 連續 3 次（間隔 6 個月）測不到停藥，每次最多 36 個月' : '依 HBeAg 決定') + '。');
+
+    var lcDx = F4 || (ck('hb-usLc') && (ck('hb-usVar') || ck('hb-usSpl') || (isNum(plt) && plt < 120))) || ck('hb-ctLc');
+    if (hbsag && lcDx && dnaDet) add('yes', '肝硬化，可長期使用（第 2(5) 項）', 'HBsAg（＋）、可測到 HBV DNA，且符合肝硬化診斷（切片 F4、超音波條件、肝硬度 Fibroscan ≥12 或 ARFI ≥1.98，或 CT／MRI）。');
+    else if (hbsag && lcDx && !dnaDet) add('no', '肝硬化長期使用（第 2(5) 項）', '肝硬化成立，但需可檢驗到血清 HBV DNA。');
+    else if (hbsag && ck('hb-usLc') && !lcDx) add('no', '肝硬化長期使用（第 2(5) 項）', '超音波肝硬化需合併靜脈曲張、脾腫大或血小板 <120,000/µL。');
+
+    if (hbsag && e === 'P') {
+      if (!six) add('na', 'HBeAg 陽性（第 3 項）', '需 HBsAg（＋）超過 6 個月（或 IgM anti-HBc 陰性）。');
+      else if (isNum(x1) && x1 >= 5) add('yes', 'HBeAg 陽性：ALT ≥5X（第 3(1) 項）', '療程：治療至 e 抗原轉陰，再給付最多 12 個月。');
+      else if (isNum(x1) && x1 >= 2 && dna >= 20000) add('yes', 'HBeAg 陽性：2X ≤ALT <5X，DNA ≥20,000（第 3(2) 項）', '療程：治療至 e 抗原轉陰，再給付最多 12 個月。');
+      else if (F3 && x1 > 1 && x2 > 1 && ck('hb-gap3') && dna >= 20000) add('yes', 'HBeAg 陽性：纖維化 ≥F3（第 3(3) 項）', '半年內兩次 ALT >ULN（間隔 >3 個月）、DNA ≥20,000。療程：至 e 抗原轉陰再 12 個月。');
+      else add('no', 'HBeAg 陽性（第 3 項）', (function(){
+        var r = [];
+        if (!isNum(x1)) r.push('缺 ALT');
+        else if (x1 < 2) r.push('ALT ' + x1.toFixed(2) + 'X <2X');
+        else if (dna < 20000 || !isNum(dna)) r.push('DNA 未達 20,000');
+        if (isNum(x1) && x1 > 1 && dna >= 20000 && !F3) r.push('纖維化未達 F3');
+        if (F3 && !(x2 > 1 && ck('hb-gap3'))) r.push('F3 條款需半年內兩次 ALT >ULN 且間隔 >3 個月');
+        return r.join('；') + '。';
+      })());
+    }
+
+    var restricted = false;
+    if (hbsag && e === 'N') {
+      var dur = '療程至少 2 年，DNA 連續 3 次（間隔 6 個月）測不到停藥，每次最多給付 36 個月。';
+      var twice2 = isNum(x2) && x2 >= 2 && ck('hb-gap3');
+      if (!six) add('na', 'HBeAg 陰性（第 4 項）', '需 HBsAg（＋）超過 6 個月（或 IgM anti-HBc 陰性）。');
+      else if (isNum(x1) && x1 >= 2 && dna >= 2000) {
+        if (twice2) add('yes', 'HBeAg 陰性：ALT ≥2X，DNA ≥2,000（第 4(1) 項）', '半年內兩次 ALT ≥2X，所有品項皆可。' + dur);
+        else { restricted = true; add('part', 'HBeAg 陰性：ALT ≥2X 一次，DNA ≥2,000（第 4(1) 項）', '只有一次 ALT ≥2X：' + HB_RESTRICT + ' 不可用（需半年內兩次、間隔 3 個月）。可用 Baraclude 等未列名 entecavir、Vemlidy（TAF）。' + dur); }
+      } else if (F2 && x1 > 1 && x2 > 1 && ck('hb-gap3') && dna >= 20000) {
+        if (F3) add('yes', 'HBeAg 陰性：纖維化 ≥F3（第 4(2) 項）', '半年內兩次 ALT >ULN、DNA ≥20,000，所有品項皆可。' + dur);
+        else { restricted = true; add('part', 'HBeAg 陰性：纖維化 F2（第 4(2) 項）', '纖維化 ≥F2 未達 F3：' + HB_RESTRICT + ' 不可用（需 ≥F3）。可用 Baraclude 等未列名 entecavir、Vemlidy（TAF）。' + dur); }
+      } else add('no', 'HBeAg 陰性（第 4 項）', (function(){
+        var r = [];
+        if (!isNum(x1)) r.push('缺 ALT');
+        else if (x1 < 2 && !(F2 && x1 > 1)) r.push('ALT ' + x1.toFixed(2) + 'X');
+        if (isNum(x1) && x1 >= 2 && !(dna >= 2000)) r.push('DNA 未達 2,000');
+        if (isNum(x1) && x1 > 1 && x1 < 2) {
+          if (!F2) r.push('纖維化未達 F2');
+          if (!(x2 > 1 && ck('hb-gap3'))) r.push('需半年內兩次 ALT >ULN 且間隔 >3 個月');
+          if (!(dna >= 20000)) r.push('DNA 未達 20,000');
+        }
+        return (r.join('；') || '未符合') + '。';
+      })());
+    }
+
+    if (hbsag && ck('hb-preg')) {
+      if (dna >= 200000) add('yes', '懷孕（第 2(7) 項）', 'DNA ≥2×10⁵ IU/mL，懷孕滿 27 週起可用 telbivudine、TDF 或 TAF，至產後 4 週。');
+      else add('no', '懷孕（第 2(7) 項）', '需 HBV DNA ≥2×10⁵ IU/mL。');
+    }
+    if (hbsag && ck('hb-hcc')) add(dnaDet ? 'yes' : 'no', '肝癌根除性治療後（第 2(8) 項）', dnaDet ? '可檢驗到 HBV DNA，可長期使用至肝癌復發且無法再根除。' : '需可檢驗到血清 HBV DNA。');
+    if (ck('hb-immuno')) add('part', '化療或免疫抑制（第 2(9) 項）', '預防性用藥依藥物種類與 HBsAg／anti-HBc 狀態判定，請對照 10.7.3 第 2(9) 項條文。');
+
+    var head, headSt;
+    var yes = items.filter(function(i){ return i.st === 'yes'; }), part = items.filter(function(i){ return i.st === 'part'; });
+    if (!hbsag) { headSt = 'na'; head = '請勾選 HBsAg（＋）'; }
+    else if (items.some(function(i){ return i.title.indexOf('肝硬化，可長期') !== -1 || i.title.indexOf('代償不全') !== -1; })) { headSt = 'yes'; head = '符合，可長期或優先給付'; }
+    else if (yes.length) { headSt = 'yes'; head = '符合健保給付'; }
+    else if (part.length) { headSt = 'part'; head = restricted ? '符合，但品項受限' : '需確認'; }
+    else if (!e && !items.length) { headSt = 'na'; head = '請選擇 HBeAg'; }
+    else { headSt = 'no'; head = '目前未符合'; }
+
+    var drugsHtml = restricted ?
+      '<div class="drugs"><span class="drug ok">Entecavir 0.5 mg<small>未列名品項，如 Baraclude</small></span><span class="drug ok">TAF 25 mg<small>Vemlidy</small></span><span class="drug off">TDF 300 mg<small>Viread 等列名品項</small></span></div>' :
+      '<div class="drugs"><span class="drug ' + (headSt === 'yes' ? 'ok' : '') + '">Entecavir 0.5 mg<small>代償不全 1.0 mg</small></span><span class="drug ' + (headSt === 'yes' ? 'ok' : '') + '">TDF 300 mg<small>Viread 等</small></span><span class="drug ' + (headSt === 'yes' ? 'ok' : '') + '">TAF 25 mg<small>Vemlidy</small></span></div>';
+
+    var cards = [];
+    cards.push(
+      '<div class="rx-card lead"><div class="rx-card-head"><h4>判定結果</h4>' + rxBadge(headSt, head) + '</div>' +
+      '<div class="score" style="font-size:24px;margin:2px 0 6px;color:var(--teal-dark)">' + esc(head) + '</div>' +
+      '<p style="font-size:13px;color:var(--muted)">HBeAg ' + (e === 'P' ? '陽性' : e === 'N' ? '陰性' : '未選') +
+      '　｜　ALT ' + (isNum(x1) ? x1.toFixed(2) + ' X ULN' : '－') + (isNum(x2) ? '／' + x2.toFixed(2) + ' X' : '') +
+      '　｜　HBV DNA ' + (und ? '測不到' : (isNum(dnaRaw) ? rxFmt(dnaRaw) + ' IU/mL' : '－')) +
+      '　｜　纖維化 ' + fLabel + (isNum(fib4) ? '（FIB-4 ' + fib4.toFixed(2) + '）' : '') + '</p></div>'
+    );
+    cards.push(
+      '<div class="rx-card"><div class="rx-card-head"><h4>逐條比對</h4></div>' +
+      (items.length ? items.map(function(i){ return rxRule(i.st, i.title, i.detail); }).join('') : '<p class="rx-why">輸入資料後顯示符合的條款。</p>') + '</div>'
+    );
+    cards.push(
+      '<div class="rx-card"><div class="rx-card-head"><h4>可用藥物</h4></div>' + drugsHtml +
+      '<div class="rx-why">基層院所須有消化系內科專任專科醫師開立。纖維化門檻：F2＝Fibroscan ≥8 kPa、ARFI ≥1.5、FIB-4 ≥2.1；F3＝≥9.5、≥1.81、≥3.25；F4＝≥12、≥1.98。</div></div>'
+    );
+
+    $('hbvrx-result').innerHTML = cards.join('');
+
+    if (hbsag) {
+      COPY.hbvrx = 'B 肝用藥給付判定：' + head + '｜HBeAg ' + (e === 'P' ? '陽性' : e === 'N' ? '陰性' : '未選') + '｜纖維化 ' + fLabel;
+    }
+    hbvrxShow(!!hbsag);
+  }
+
+  var HB_FIELDS = ['hb-age','hb-uln','hb-alt1','hb-alt2','hb-ast','hb-plt','hb-dna','hb-fs','hb-arfi','hb-bx','hb-bil','hb-pt','hb-eag',
+    'hb-hbsag','hb-hbsag6','hb-gap3','hb-dnaUnd','hb-usLc','hb-usVar','hb-usSpl','hb-ctLc','hb-preg','hb-hcc','hb-immuno'];
+  bind(HB_FIELDS, calcHbvRx);
+  calcHbvRx();
+
+  RESETTERS.hbvrx = function(){
+    var panel = $('panel-hbvrx');
+    panel.querySelectorAll('input[type=number]').forEach(function(el){ el.value = ''; el.classList.remove('invalid'); });
+    panel.querySelectorAll('input[type=text]').forEach(function(el){ el.value = ''; el.classList.remove('invalid'); });
+    panel.querySelectorAll('input[type=checkbox]').forEach(function(el){ el.checked = false; });
+    panel.querySelectorAll('select').forEach(function(el){ el.selectedIndex = 0; });
+    panel.querySelectorAll('.field-err').forEach(function(el){ el.textContent = ''; el.hidden = true; });
+    $('hb-uln').value = '40';
+    calcHbvRx();
+    var first = panel.querySelector('select, input');
+    if (first) first.focus();
+  };
 
   /* ======================================================
      Bristol Stool Scale
@@ -1367,7 +1726,7 @@
      最後改版日期（顯示於主畫面左下角）
      每次改版請一併更新這個常數
      ====================================================== */
-  var APP_REVISION = '2026-09-11';
+  var APP_REVISION = '2026-10-11';
   (function renderAppRevision(){
     var el = $('app-revision');
     if (el) el.textContent = '最後改版：' + APP_REVISION;

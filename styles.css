@@ -82,13 +82,30 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
   border-radius:999px;padding:3px 16px;
 }
 .qr-block{display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;width:104px;}
-.qr-wrap{
-  width:88px;height:88px;background:#fff;border-radius:12px;padding:5px;
-  box-shadow:0 3px 12px rgba(0,0,0,.18);
+.qr-btn{
+  width:88px;height:88px;background:#fff;border-radius:12px;padding:5px;border:0;
+  box-shadow:0 3px 12px rgba(0,0,0,.18);cursor:pointer;
+  transition:transform .16s var(--ease),box-shadow .16s var(--ease);
 }
-.qr-wrap img{width:100%;height:100%;object-fit:contain;display:block;}
+.qr-btn:hover,.qr-btn:focus-visible{transform:scale(1.05);box-shadow:0 5px 16px rgba(0,0,0,.26);}
+.qr-btn img{width:100%;height:100%;object-fit:contain;display:block;}
 .qr-label{color:rgba(255,255,255,.82);font-size:12px;letter-spacing:1px;}
 .header-spacer{width:104px;flex-shrink:0;}
+
+.qr-overlay{position:fixed;inset:0;background:rgba(9,17,21,.74);z-index:200;align-items:center;justify-content:center;padding:28px;}
+.qr-overlay:not([hidden]){display:flex;}
+.qr-overlay .qr-modal{
+  position:relative;background:#fff;border-radius:var(--radius);
+  padding:28px;display:flex;flex-direction:column;align-items:center;gap:12px;
+  max-width:min(88vw,360px);box-shadow:var(--shadow);
+}
+.qr-overlay .qr-modal img{width:100%;height:auto;display:block;}
+.qr-overlay .qr-modal p{margin:0;color:var(--navy);font-size:14px;font-weight:700;text-align:center;}
+.qr-overlay .qr-modal-close{
+  position:absolute;top:-16px;right:-16px;width:34px;height:34px;border-radius:50%;
+  border:2px solid #fff;background:var(--teal);color:#fff;font-size:16px;line-height:1;cursor:pointer;
+  box-shadow:0 3px 10px rgba(0,0,0,.25);
+}
 
 /* ==========================================================
    Tabs
@@ -483,6 +500,51 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
 }
 
 /* ==========================================================
+   用藥給付判定（降血脂／B 型肝炎）
+   ========================================================== */
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:22px;}
+.rx-section{margin-bottom:22px;}
+.rx-section-title{font-size:13.5px;font-weight:700;color:var(--teal);margin-bottom:8px;}
+.rx-hint{font-size:12px;color:var(--faint);margin-bottom:8px;line-height:1.7;}
+.flags{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}
+.flag{display:flex;align-items:flex-start;gap:9px;padding:4px 0;cursor:pointer;font-size:13.5px;color:var(--text);line-height:1.5;}
+.flag input{margin-top:4px;flex:none;width:16px;height:16px;accent-color:var(--teal);}
+.flag.sub{padding-left:25px;font-size:13px;color:#3E4E56;}
+.chips{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:4px;}
+.chip{display:inline-flex;align-items:center;font-size:11.5px;font-weight:600;border-radius:999px;padding:2px 11px;background:var(--surface-alt);color:var(--muted);border:1px solid var(--line);}
+.chip.on{background:var(--teal-soft);color:var(--teal-dark);border-color:var(--teal);font-weight:700;}
+.chip-count{font-size:12.5px;font-weight:700;color:var(--text);margin-left:2px;}
+
+.rx-cards{display:flex;flex-direction:column;gap:12px;}
+.rx-card{border:1.5px solid var(--line);border-left-width:4px;border-radius:var(--radius-md);padding:14px 16px;background:var(--surface);}
+.rx-card.lead{background:var(--surface-alt);}
+.rx-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+.rx-card-head h4{font-size:14px;color:var(--text);}
+.rx-card p{font-size:13.5px;color:#3E4E56;line-height:1.75;}
+.rx-card .rx-why{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.75;}
+.rx-status{font-size:12px;font-weight:700;border-radius:999px;padding:3px 12px;white-space:nowrap;}
+.rx-status.st-yes{background:var(--green-soft);color:var(--green);}
+.rx-status.st-no{background:var(--red-soft);color:var(--red);}
+.rx-status.st-wait,.rx-status.st-part{background:var(--amber-soft);color:var(--amber);}
+.rx-status.st-na{background:var(--surface-alt);color:var(--faint);border:1px solid var(--line);}
+
+.rx-rule{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px dashed var(--line);}
+.rx-rule:first-child{border-top:0;padding-top:0;}
+.rx-rule .rx-status{flex:none;margin-top:1px;}
+.rx-rule-body b{font-size:13.5px;color:var(--text);}
+.rx-rule-body .rx-why{margin-top:3px;}
+
+.drugs{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px;}
+.drug{font-size:12.5px;border:1px solid var(--line);border-radius:8px;padding:4px 10px;display:flex;flex-direction:column;line-height:1.4;background:var(--surface);}
+.drug small{color:var(--faint);font-variant-numeric:tabular-nums;}
+.drug.ok{border-color:var(--green);background:var(--green-soft);}
+.drug.off{opacity:.4;text-decoration:line-through;}
+
+@media (max-width:600px){
+  .grid-3{grid-template-columns:1fr;gap:12px;}
+}
+
+/* ==========================================================
    彙整結果
    ========================================================== */
 .summary-zone{
@@ -550,7 +612,7 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
   .clinic-sub{font-size:9.5px;letter-spacing:1.6px;margin-top:2px;}
   .clinic-tool{font-size:12px;margin-top:7px;padding:2px 12px;}
   .qr-block{width:64px;gap:4px;}
-  .qr-wrap{width:60px;height:60px;padding:3px;border-radius:9px;}
+  .qr-btn{width:60px;height:60px;padding:3px;border-radius:9px;}
   .qr-label{font-size:10px;}
   .header-spacer{width:64px;}
 
@@ -617,7 +679,7 @@ h1,h2,h3{font-weight:700;line-height:1.35;}
 @media print{
   body{background:#fff;padding:0;}
   .card{box-shadow:none;border-radius:0;max-width:100%;}
-  .tabs-wrap,.panel-actions,.empty-hint,.qr-block,.header-spacer{display:none!important;}
+  .tabs-wrap,.panel-actions,.empty-hint,.qr-block,.header-spacer,.qr-overlay{display:none!important;}
 
   /* 自我評估：只印目前這一項的結果與下方彙整，不印題目、選項與操作按鈕 */
   .opt-list,.quiz-nav,.progress-track,.quiz-step,.quiz-q,.quiz-tag,.quiz-intro,
